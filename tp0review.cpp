@@ -372,8 +372,8 @@ strcpy(cstr, line.c_str());
   }
   void readReserves(vector<reserve>& reserves, string reserveFile){
     string line, d;
-    int nbreserves = 0, 
-    unsigned int dimension;
+    int nbreserves = 0;
+    unsigned int dimension = 0;
     bool seen =false;
     vector<float> c, output, cd;
 
@@ -382,6 +382,7 @@ strcpy(cstr, line.c_str());
     if (file.is_open())
     {
       getline (file,d);
+      dimension = stoi(d);
       
       while(getline(file, line)){
       nbreserves++;
