@@ -58,7 +58,7 @@ strcpy(cstr, line.c_str());
                 else {
                   seen = true;
                   cout << "ERROR : Bases coordonates must contain only the dot character which is '.' and/or numbers." << endl;
-                  cout << "Please replace the character " << cstr[i] << "."  << endl;
+                  cout << "Please replace the character " << cstr[i] << ". And check the rest of the file."  << endl;
                   error = true;
                 }
         }
@@ -110,7 +110,7 @@ strcpy(cstr, line.c_str());
                 else {
                   seen = true;
                   cout << "ERROR : The file " << filename << " must contain only the dot character which is '.' and/or numbers." << endl;
-                  cout << "Please replace the character " << cstr[i] << "."  << endl;
+                  cout << "Please replace the character " << cstr[i] << ". And check the rest of the file."  << endl;
                   error = true;
                 }
         }
@@ -389,6 +389,9 @@ strcpy(cstr, line.c_str());
       while(getline(file, line)){
       nbreserves++;
       c = readCoord(line, seen, reserveFile);
+      if(c.size() != dimension) {
+            cout << "ERROR : One reserve has coordinates of wrong dimension, dimension must be "<< dimension <<  " . Please correct it and re-run the program." << endl; exit (EXIT_FAILURE);
+          }
       if(!c.size()) {
             cout << "ERROR : the file "<< reserveFile << " must not contain any empty line, please fill the empty line and re-run the program." << endl; exit (EXIT_FAILURE);
           }
