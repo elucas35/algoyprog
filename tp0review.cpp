@@ -30,7 +30,7 @@
 
 
   float dist (vector<float>& d1, vector<float>& d2){
-    int a;
+    unsigned int a;
     float d,sum=0;
     for(a=0; a < d1.size(); a++){
       d=d2[a] - d1[a];
@@ -40,7 +40,7 @@
   }
   vector<float> readCoord(string line, bool &seen){
 	char *cstr = new char[line.length() + 1];
-    int i, l;
+    unsigned int i, l;
     float coord;
     string s, t;
     vector< string > arr;
@@ -90,7 +90,7 @@ strcpy(cstr, line.c_str());
   vector<float> readCoord(string line, bool &seen, string &filename){
 
     char *cstr = new char[line.length() + 1];
-    int i, l;
+    unsigned int i, l;
     float coord;
     string s, t;
     vector< string > arr;
@@ -144,7 +144,7 @@ strcpy(cstr, line.c_str());
   void setReserveCoord(vector<float> coordarray, vector<reserve>& reserves){
 
     reserve r;
-    int j, m;
+    unsigned int j, m;
       for (m=0; m<coordarray.size(); m++){
       r.addACoordinate(coordarray[m]);
 
@@ -173,7 +173,8 @@ strcpy(cstr, line.c_str());
   }
 
   int min(vector<float> &d){
-    int a, indice = 0;
+    unsigned int a;
+    int indice = 0;
     for(a=0; a < d.size(); a++){
      if (d[a] <  d[indice]) {
       indice = a;
@@ -194,15 +195,14 @@ strcpy(cstr, line.c_str());
   }
 
   void writeOutputFile(vector<float> output, ofstream &file){
-    int a;
-    
+    unsigned int a;
     for(a=0; a < output.size(); a++){
       file << output[a] << " ";
     }
     file << endl;
   }
   void writeOutput(vector<float> output){
-    int a;
+    unsigned int a;
     for(a=0; a < output.size(); a++){
       cout << output[a] << " ";
     }
@@ -214,7 +214,7 @@ strcpy(cstr, line.c_str());
     ifstream bfile ;
     bfile.open(baseFile);
     bool seen =false;
-    int dim;
+    unsigned int dim;
 
     vector<reserve>::iterator k = reserves.begin();
     dim = k->getDim();
@@ -247,7 +247,7 @@ strcpy(cstr, line.c_str());
     ifstream bfile ;
     bfile.open(baseFile);
     bool seen =false;
-    int dim;
+    unsigned int dim;
 
     vector<reserve>::iterator k = reserves.begin();
     dim = k->getDim();
@@ -273,8 +273,7 @@ strcpy(cstr, line.c_str());
     string bline;
     vector<float> output, cd, c;
     bool seen =false;
-    int a;
-     int dim;
+    unsigned int a, dim;
 
     vector<reserve>::iterator k = reserves.begin();
     dim = k->getDim();
@@ -296,8 +295,7 @@ strcpy(cstr, line.c_str());
     ifstream bfile ;
     bfile.open(outputFile);
     bool seen =false;
-    int a, l;
-    int dim;
+    unsigned int a, l, dim;
 
     vector<reserve>::iterator k = reserves.begin();
     dim = k->getDim();
@@ -374,7 +372,7 @@ strcpy(cstr, line.c_str());
   }
   void readReserves(vector<reserve>& reserves, string reserveFile){
     string line, d;
-    int dimension, nbreserves = 0;
+    int nbreserves = 0;
     bool seen =false;
 
     vector<float> c, output, cd;
@@ -384,7 +382,6 @@ strcpy(cstr, line.c_str());
     if (file.is_open())
     {
       getline (file,d);
-      dimension = stoi(d);
       
       while(getline(file, line)){
       nbreserves++;
