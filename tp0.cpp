@@ -159,7 +159,6 @@ strcpy(cstr, line.c_str());
 
     vector<float> rcoordarray;
     vector<float> distances;
-    int a;
 
     for (vector<reserve>::iterator k = reserves.begin(); 
                              k != reserves.end(); 
@@ -328,7 +327,7 @@ strcpy(cstr, line.c_str());
   }
   void readReserves(vector<reserve>& reserves, string reserveFile){
     string line, d;
-    int dimension, nbreserves = 0;
+    int nbreserves = 0;
     bool seen =false;
 
     vector<float> c, output, cd;
@@ -338,7 +337,6 @@ strcpy(cstr, line.c_str());
     if (file.is_open())
     {
       getline (file,d);
-      dimension = stoi(d);
       
       while(getline(file, line)){
       nbreserves++;
