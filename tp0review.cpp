@@ -372,9 +372,9 @@ strcpy(cstr, line.c_str());
   }
   void readReserves(vector<reserve>& reserves, string reserveFile){
     string line, d;
-    int nbreserves = 0;
+    int nbreserves = 0, 
+    unsigned int dimension;
     bool seen =false;
-
     vector<float> c, output, cd;
 
     ifstream file;
