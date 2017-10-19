@@ -66,6 +66,7 @@ using namespace std;
 	  static void niveles(bintree *);
 	  static bintree *create2DBST(float** array, int depth, int nbreserves, int left = 0, int right = -1);
 	  static bintree *createhalf2DBST(float** array, int depth, int nbreserves, int left = 0, int right = -1);
+	  static bintree *createfraction2DBST(float** array, int depth, int nbreserves, int left=0, int right=-1);
 	  void readTree(float **array, int depth,int left, int right);
 };
 
@@ -362,15 +363,48 @@ bintree::createhalf2DBST(float** array, int depth, int nbreserves, int left, int
 }
 
 //finds recursively the half value of a fraction of points of the binary search tree to build
-void findfraction2D(int left, int right, int d, float **array){
-  int n=0;
-  if (right == -1) { right = (sizeof(array)/sizeof(array[0]));}
-  quickSort2D(array, left, right-1, n);
-  if (left == right - 1 ) {cout << "half to one element is element " << array[left][n] << endl;}
+bintree *
+bintree::createfraction2DBST(float** array, int depth, int nbreserves, int left, int right){
+  int n=0,i,lim;
+  depth++;
+  bintree *t = new bintree;
+  bintree *tl;
+  bintree *tr;
   
+  if(depth%2 != 0) {n = 1;}
+  
+  if (right == -1) { right = nbreserves;}
+  quickSort2D(array, left, right-1, n);
+   if (left == right) { 
+	 // t->readTree(array, depth, left, right);
+	  //display(t->l);
+	  return nullptr; 
+  }
+  if (left == right - 1 ) {cout << "half to one element is element " << array[left][n] << endl; return new bintree(array[left][n]);}
+  float fractionpoint;
   if(left != right - 1 && right != left){ 
-		cout << "sorted coordinates in level "<< n << endl;
+	  cout << "sorted coordinates in level "<< n << endl;
+	  if(right-left>=3){
+		  for(i=left;i<(left+3);i++){
+			  fractionpoint+=array[i][n];
+			  lim=i;
+		}
+		fractionpoint/=3;
+	  }else{
+			for(i=left;i<right;i++){
+				fractionpoint+=array[i][n];
+				lim=i;
+			}
+		fractionpoint/=(right-left);
+		}
+	
 	}
+	t->root=fractionpoint; 
+	tl = createfraction2DBST(array, depth, lim, left, lim);
+    tr = createfraction2DBST(array, depth, right, lim +1, right);
+    t->left = tl;
+    t->right = tr;
+    return t;
 }
 
 void
@@ -479,7 +513,7 @@ cout << "niveles: ";
 			bintree::niveles(tree); //Recorrido: por niveles
 			if (tree != nullptr) {delete tree;} //Destrucción
 		}else if(splitting == "promedio"){
-			bintree *tree = bintree::create2DBST(reservesArray, depth, nbreserves);
+			bintree *tree = bintree::createfraction2DBST(reservesArray, depth, nbreserves);
 			bintree::niveles(tree); //Recorrido: por niveles
 			if (tree != nullptr) {delete tree;} //Destrucción
 		}else{
