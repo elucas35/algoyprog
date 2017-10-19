@@ -65,6 +65,7 @@ using namespace std;
 
 	  static void niveles(bintree *);
 	  static bintree *create2DBST(float** array, int depth, int nbreserves, int left = 0, int right = -1);
+	  static bintree *createhalf2DBST(float** array, int depth, int nbreserves, int left = 0, int right = -1);
 	  void readTree(float **array, int depth,int left, int right);
 };
 
@@ -315,49 +316,49 @@ return t;
 }
 
 //finds recursively the half values of the binary search tree to build
-void findhalf2D(int left, int right, int d, float **array){
-	  
-  int n = 0, i, j, lim;
-  d++;
-  if(d%2 != 0) {n = 1;}
+bintree *
+bintree::createhalf2DBST(float** array, int depth, int nbreserves, int left, int right){ 
+  int n = 0, i, lim;
+  depth++;
+  bintree *t = new bintree;
+  bintree *tl;
+  bintree *tr;
+  
+  if(depth%2 != 0) {n = 1;}
    
-  if (right == -1) { right = (sizeof(array)/sizeof(array[0]));}
+  if (right == -1) { right = nbreserves;}
   quickSort2D(array, left, right-1, n);
-  if (left == right - 1 ) {cout << "half to one element is element " << array[left][n] << endl;}
+   if (left == right) { 
+	 // t->readTree(array, depth, left, right);
+	  //display(t->l);
+	  return nullptr; 
+  }
+  if (left == right - 1 ) {return new bintree(array[left][n]);}
   
   float halfpoint[2];
   halfpoint[0] = (array[left][0]+array[right-1][0]) / 2 ;
   halfpoint[1] = (array[left][1]+array[right-1][1]) / 2 ;
   
-  if(left != right - 1 && right != left){ 
-		cout << "sorted coordinates in level "<< n << endl;
-		
+  if(left != right - 1 && right != left){ 		
           for(i=left; i<right; i++){
 			  if(n==0){
 				  if(array[i][n]<=halfpoint[n]){
-					  for(j=0;j<2;j++){
-						cout << array[i][j] << " ";
-					  }
 					  lim = i;
 				  }
-				cout << endl;
               }else if(n==1) {
 				if(array[i][n]>halfpoint[n]){
-					  for(j=0;j<2;j++){
-						cout << array[i][j] << " ";
-					  }
-					  lim = j;
+					  lim = i;
 				  }
-				cout << endl;
 			  }
           }
-      
-      cout << "half is " << halfpoint[n] << " and depth " << d <<endl;
-      cout << "left is : " << left << " and ";
-      cout << "right is : " << right << endl << endl;
-      findhalf2D(left, lim, d, array);
-      findhalf2D(lim +1, right, d, array);
     }
+    
+    t->root=halfpoint[n]; 
+    tl = createhalf2DBST(array, depth, lim, left, lim);
+    tr = createhalf2DBST(array, depth, right, lim +1, right);
+    t->left = tl;
+    t->right = tr;
+    return t;
 }
 
 //finds recursively the half value of a fraction of points of the binary search tree to build
@@ -474,10 +475,9 @@ cout << "niveles: ";
 			bintree::niveles(tree); //Recorrido: por niveles
 			if (tree != nullptr) {delete tree;} //Destrucción
 		}else if(splitting == "mitad"){
-			bintree *tree = bintree::create2DBST(reservesArray, depth, nbreserves);
+			bintree *tree = bintree::createhalf2DBST(reservesArray, depth, nbreserves);
 			bintree::niveles(tree); //Recorrido: por niveles
 			if (tree != nullptr) {delete tree;} //Destrucción
-			findhalf2D(0,reserves.size(),depth,reservesArray);
 		}else if(splitting == "promedio"){
 			bintree *tree = bintree::create2DBST(reservesArray, depth, nbreserves);
 			bintree::niveles(tree); //Recorrido: por niveles
