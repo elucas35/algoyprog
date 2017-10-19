@@ -7,6 +7,7 @@
 #include <iterator>
 #include <math.h>
 #include <cstring>
+#include <list>
 using namespace std;
 
   class reserve
@@ -31,8 +32,8 @@ using namespace std;
   }
   float reserve::getx(){
     return x;
-}
-float reserve::gety(){
+  }
+  float reserve::gety(){
     return y;
   }
   int reserve::getDim(){
@@ -41,30 +42,30 @@ float reserve::gety(){
   }
 
   class bintree {
-private:
-  float root;
-  bintree *left;
-  bintree *right;
-  
+	private:
+	  float root;
+	  bintree *left;
+	  bintree *right;
+	  list <float**> l;
 
-public:
-  bintree() : left(nullptr), right(nullptr) {
-  }
+	public:
+	  bintree() : left(nullptr), right(nullptr) {
+	  }
 
-  bintree(const float &t) : root(t), left(nullptr), right(nullptr) {
-  }
+	  bintree(const float &t) : root(t), left(nullptr), right(nullptr) {
+	  }
 
-  ~bintree() {
-    if (left != nullptr)
-      delete left;
+	  ~bintree() {
+		if (left != nullptr)
+		  delete left;
 
-    if (right != nullptr)
-      delete right;
-  }
+		if (right != nullptr)
+		  delete right;
+	  }
 
-static void niveles(bintree *);
-static bintree *create2DBST(float** array, int depth, int left = 0, int right = -1);
-  
+	  static void niveles(bintree *);
+	  static bintree *create2DBST(float** array, int depth, int nbreserves, int left = 0, int right = -1);
+	  void readTree(float **array, int depth,int left, int right);
 };
 
 
@@ -95,7 +96,9 @@ static bintree *create2DBST(float** array, int depth, int left = 0, int right = 
                   error = true;
                 }
         }
-       else {
+        
+
+        else {
 
         t+=s;
         arr.push_back(s);
@@ -128,15 +131,13 @@ static bintree *create2DBST(float** array, int depth, int left = 0, int right = 
     reserves.push_back(r);
 
   }
-float** setReservesArray(vector<reserve>& reserves){
-
+  float** setReservesArray(vector<reserve>& reserves){
+    
     int index = 0;
-    float ** reservesArray;
-    reservesArray = new float *[reserves.size()];
+    float ** reservesArray = new float *[reserves.size()];
     for(int i = 0; i <reserves.size(); i++)
        { reservesArray[i] = new float[2];
        }
-      
 
     for (vector<reserve>::iterator k = reserves.begin(); 
                              k != reserves.end(); 
@@ -144,7 +145,7 @@ float** setReservesArray(vector<reserve>& reserves){
                 {
                     index = distance(reserves.begin(), k);
                     reservesArray[index][0] = k->getx();
-                    reservesArray[index][1] = k->gety();     
+                    reservesArray[index][1] = k->gety();
                 }
 
    
@@ -154,7 +155,7 @@ float** setReservesArray(vector<reserve>& reserves){
   {
 
     int i, j;
-    for(i=0; i<10; i++){
+    for(i=0; i<(sizeof(array)/sizeof(array[0])); i++){
       for(j=0;j<(sizeof(*array)/sizeof(**array)) ;j++){
         cout << array[i][j] << " ";
       }
@@ -162,10 +163,10 @@ float** setReservesArray(vector<reserve>& reserves){
     }
     int r = sizeof array / sizeof *array;
     cout << "row : " << r << endl;
-cout << "col : " << sizeof *array / sizeof **array << endl;
+    cout << "col : " << sizeof *array / sizeof **array  << endl;
 
   }
-  void readReserves(vector<reserve>& reserves, string reserveFile){
+  int readReserves(vector<reserve>& reserves, string reserveFile){
     string line, d;
     int nbreserves = 0;
     unsigned int dimension = 0;
@@ -192,10 +193,27 @@ cout << "col : " << sizeof *array / sizeof **array << endl;
       setReserveWithCoord(c, reserves);
       }
       file.close();
-}
+    }
 
     else cout << "Error when opening reserves files " << endl;;
+    return nbreserves;
   }
+  
+  void splitArray(float **arrayOne, float **arrayTwo, int indexSplit, float **arraySource, int sizeArraySource){
+	  int i,j;
+	  for(i=0; i<indexSplit;i++){
+		  for(j=0;j<2;j++){
+			  arrayOne[i][j]=arraySource[i][j];
+		  }
+	  }
+	  for(i=indexSplit;i<sizeArraySource;i++){
+		  for(j=0;j<2;j++){
+			  arrayTwo[i][j]=arraySource[i][j];
+		  }
+	  }
+  }
+  
+//sorting algorithm to place the values of the array in order
 void quickSort2D(float **arr, int left, int right, int n) {
       int i = left, j = right;
       float tmp1, tmp2;
@@ -224,13 +242,51 @@ void quickSort2D(float **arr, int left, int right, int n) {
  
       /* recursion */
       if (left < j)
-quickSort2D(arr, left, j, n);
-    if (i < right)
+            quickSort2D(arr, left, j, n);
+      if (i < right)
             quickSort2D(arr, i, right, n);
 }
 
+void bintree::readTree(float **array, int depth,int left, int right){
+	  float **arrayOne;
+	  float **arrayTwo;
+	  int i=left;
+	  int n=0;
+	  depth++;
+	  if(depth%2 != 0) { n = 1; }
+	  quickSort2D(array, left, right, n);
+	  while(this!=nullptr){
+			  if(n==0){
+				  while(array[i][n]<=(this->root)){
+					  i++;}
+				  splitArray(arrayOne, arrayTwo, i, array, right);
+				  (this->left)->readTree(arrayOne, depth, left, i);
+				  (this->right)->readTree(arrayTwo, depth, i+1, right);
+			  }
+			  if(n==1){
+				  while(array[i][n]>(this->root)){
+					  i++;}
+				  splitArray(arrayOne, arrayTwo, i, array, right);
+				  (this->left)->readTree(arrayOne, depth, left, i);
+				  (this->right)->readTree(arrayTwo, depth, i+1, right);
+			  }
+	 }
+	 this->l.push_front(arrayOne);
+	 this->l.push_front(arrayTwo);
+}
+
+
+void display(list<float**> l){
+	if(!l.empty()){
+		list<float**>::iterator it;
+		for(it=l.begin();it!=l.end();it++){
+			cout<<"Val arr : "<<(*it)<<endl;
+		}
+	}
+}
+//finds recursively the median values of the binary search tree to build
 bintree *
-bintree::create2DBST(float **array, int depth, int left, int right)
+bintree::create2DBST(float **array, int depth, int nbreserves, int left, int right)
 {
   int n=0;
   depth++;
@@ -239,49 +295,81 @@ bintree::create2DBST(float **array, int depth, int left, int right)
   bintree *tr;
 
   if(depth%2 != 0) { n = 1; }
+  if (right == -1) {right=nbreserves;}
   
-  //quickSort2D(array, left, right -1, n);
-  if (right == -1) {right = 10;}
-  if (left == right) { return nullptr; }
+  quickSort2D(array, left, right -1, n);
+  if (left == right) { 
+	 // t->readTree(array, depth, left, right);
+	  //display(t->l);
+	  return nullptr; 
+  }
   if( left == right - 1 ) { return new bintree(array[left][n]); }
   
-
   int med = (left + right) / 2;
   t->root = array[med][n];
-  tl = create2DBST(array, depth, left, med);
-  tr = create2DBST(array, depth, med + 1, right);
+  tl = create2DBST(array, depth, med, left, med);
+  tr = create2DBST(array, depth, right, med + 1, right);
   t->left = tl;
   t->right = tr;
-  
 return t;
 }
-void findmedian2D(int left, int right, int d, float **array)
-{
-  
-  int n = 0, i, j;
-  d++;
- if(d%2 != 0) {n = 1;}
-   
-  //if (right == -1) { right = v.size();}
-  //quickSort2D(array, left, right -1, n);
 
-  //if (left == right - 1 ) {cout << "med to one element is element " << v[left] << endl;}
-      
-      if(left != right - 1 && right != left){ // && (left!= right -2))
-          cout << "sorted coordinates in "<< n << endl;
+//finds recursively the half values of the binary search tree to build
+void findhalf2D(int left, int right, int d, float **array){
+	  
+  int n = 0, i, j, lim;
+  d++;
+  if(d%2 != 0) {n = 1;}
+   
+  if (right == -1) { right = (sizeof(array)/sizeof(array[0]));}
+  quickSort2D(array, left, right-1, n);
+  if (left == right - 1 ) {cout << "half to one element is element " << array[left][n] << endl;}
+  
+  float halfpoint[2];
+  halfpoint[0] = (array[left][0]+array[right-1][0]) / 2 ;
+  halfpoint[1] = (array[left][1]+array[right-1][1]) / 2 ;
+  
+  if(left != right - 1 && right != left){ 
+		cout << "sorted coordinates in level "<< n << endl;
+		
           for(i=left; i<right; i++){
-            for(j=0;j<2;j++){
-              cout << array[i][j] << " ";
-            }
-            cout << endl;
+			  if(n==0){
+				  if(array[i][n]<=halfpoint[n]){
+					  for(j=0;j<2;j++){
+						cout << array[i][j] << " ";
+					  }
+					  lim = i;
+				  }
+				cout << endl;
+              }else if(n==1) {
+				if(array[i][n]>halfpoint[n]){
+					  for(j=0;j<2;j++){
+						cout << array[i][j] << " ";
+					  }
+					  lim = j;
+				  }
+				cout << endl;
+			  }
           }
-      int med = (left + right) / 2;
-      cout << "median is" << array[med][n]  << " and depth " << d <<endl;
-      cout << "left is : " << left << "and ";
+      
+      cout << "half is " << halfpoint[n] << " and depth " << d <<endl;
+      cout << "left is : " << left << " and ";
       cout << "right is : " << right << endl << endl;
-      findmedian2D(left, med, d, array);
-      findmedian2D(med +1, right, d, array);
+      findhalf2D(left, lim, d, array);
+      findhalf2D(lim +1, right, d, array);
     }
+}
+
+//finds recursively the half value of a fraction of points of the binary search tree to build
+void findfraction2D(int left, int right, int d, float **array){
+  int n=0;
+  if (right == -1) { right = (sizeof(array)/sizeof(array[0]));}
+  quickSort2D(array, left, right-1, n);
+  if (left == right - 1 ) {cout << "half to one element is element " << array[left][n] << endl;}
+  
+  if(left != right - 1 && right != left){ 
+		cout << "sorted coordinates in level "<< n << endl;
+	}
 }
 
 void
@@ -309,33 +397,27 @@ cout << "niveles: ";
 
   int main (int argc, char* argv[]) {
 
-  	bool points=false, input=false, output=false;
+  	bool points=false, input=false, output=false, heuristic=false;
   	vector<reserve> reserves;
-    float **reservesArray;
-  	string basef, outputf, line;
+    float **reservesArray=NULL;
+  	string basef, outputf, splitting;
     vector <string> cinbases;
     vector <float> outputv;
-    float ints[] = {16,2,77,29};
+    
     int depth = -1;
-  	
-for (int i = 1; i < argc; ++i) {
+  	int nbreserves;
+  	for (int i = 1; i < argc; ++i) {
           string arg = argv[i];
   		if((arg == "-p")||(arg=="--points")) {
   			points=true;
   			if (i + 1 < argc) {
-  				readReserves(reserves, argv[++i]);
-          reservesArray = setReservesArray(reserves);
-          //read(reservesArray);
-
-          bintree *tree = bintree::create2DBST(reservesArray, depth);
-          bintree::niveles(tree); //Recorrido: por niveles
-          if (tree != nullptr) {delete tree;} //Destrucción
-
-          //findmedian2D(0,9, depth, reservesArray);
+  				nbreserves = readReserves(reserves, argv[++i]);
+				reservesArray = setReservesArray(reserves);
+				read(reservesArray);
 
   		  } else {
   			  cerr << "-p option requires one argument." << endl;
-          exit (EXIT_FAILURE);
+				exit (EXIT_FAILURE);
   			}
   		} else if((arg == "-i")||(arg=="--input")) {
   			input=true;
@@ -346,20 +428,25 @@ for (int i = 1; i < argc; ++i) {
           exit (EXIT_FAILURE);
   			}
   		} else if((arg=="-o")||(arg=="--output")){ 
-output=true;
- 			if (i + 1 < argc) { 
+  			output=true;
+  			if (i + 1 < argc) { 
   				outputf=argv[++i];
   			}else {
   			  cerr << "-o option requires one argument." << endl;
           exit (EXIT_FAILURE);
   			}
-  		}
+  		}else if((arg=="-s")||(arg=="--split")){
+			heuristic=true;
+			if (i + 1 < argc) { 
+  				splitting=argv[++i];
+  			}else {
+  			  cerr << "-s option requires one argument." << endl;
+          exit (EXIT_FAILURE);
+  			}
+			
+		}
   	}
     if(!points) {cerr << "ERROR : -p or --points is a compulsory option." << endl; exit (EXIT_FAILURE);}
-
-
-
-
 
     // if((!input) && (output))
   	// {
@@ -373,16 +460,40 @@ output=true;
   	// }else if((input) && (output))
   	// {
   	//  openOutputFile(reserves,outputf,basef);
-// }else if((input) && (!output))
- 	// { 
+  	// }else if((input) && (!output))
+  	// { 
    //   readBasesNoOutput(reserves, basef);
   	// }else if((!input) && (!output))
   	// { 
    //    cinbases = readBasesFromInput();
    //    readBasesNoInputOutput(reserves, cinbases);
 	  // }
-
+	if(heuristic){
+		if(splitting == "mediana"){
+			bintree *tree = bintree::create2DBST(reservesArray, depth, nbreserves);
+			bintree::niveles(tree); //Recorrido: por niveles
+			if (tree != nullptr) {delete tree;} //Destrucción
+		}else if(splitting == "mitad"){
+			bintree *tree = bintree::create2DBST(reservesArray, depth, nbreserves);
+			bintree::niveles(tree); //Recorrido: por niveles
+			if (tree != nullptr) {delete tree;} //Destrucción
+			findhalf2D(0,reserves.size(),depth,reservesArray);
+		}else if(splitting == "promedio"){
+			bintree *tree = bintree::create2DBST(reservesArray, depth, nbreserves);
+			bintree::niveles(tree); //Recorrido: por niveles
+			if (tree != nullptr) {delete tree;} //Destrucción
+		}else{
+			cerr << "-s option accepts only mediana, mitad or promedio arguments." << endl;
+          exit (EXIT_FAILURE);
+		}
+	}else{
+		bintree *tree = bintree::create2DBST(reservesArray, depth, nbreserves);
+		bintree::niveles(tree); //Recorrido: por niveles
+		if (tree != nullptr) {delete tree;} //Destrucción
+	}
+	
     for (int i = 0;i<reserves.size();i++) { delete[] reservesArray[i]; }
     delete[] reservesArray;
+    
     return 0;
-}
+  }
