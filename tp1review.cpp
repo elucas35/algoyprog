@@ -7,7 +7,7 @@
 #include <iterator>
 #include <math.h>
 #include <cstring>
-#include <list>
+#include <map>
 using namespace std;
 
   class reserve
@@ -41,15 +41,32 @@ using namespace std;
     return 2;
   }
 
+class leaf{
+	private:
+		vector< reserve > coordleaf;
+	public:
+		void addToLeaf(float* coord);
+		vector<reserve> getCoordLeaf();
+};
+void leaf::addToLeaf(float* coord){
+	reserve r;
+	r.setx(coord[0]);
+	r.sety(coord[1]);
+	coordleaf.push_back(r);
+}
+vector<reserve> leaf::getCoordLeaf(){
+	return coordleaf;
+}
+
   class bintree {
 	private:
 	  float root;
 	  bintree *left;
 	  bintree *right;
-	  list <float**> l;
+	 // int id[];
 
 	public:
-	  bintree() : left(nullptr), right(nullptr) {
+	  bintree() : left(nullptr), right(nullptr){
 	  }
 
 	  bintree(const float &t) : root(t), left(nullptr), right(nullptr) {
@@ -67,10 +84,13 @@ using namespace std;
 	  static bintree *create2DBST(float** array, int depth, int nbreserves, int left = 0, int right = -1);
 	  static bintree *createhalf2DBST(float** array, int depth, int nbreserves, int left = 0, int right = -1);
 	  static bintree *createfraction2DBST(float** array, int depth, int nbreserves, int left=0, int right=-1);
-	  void readTree(float **array, int depth,int left, int right);
+	  //void readTree(float **array, int depth,int left, int right);
+	  bool add(float* coord, float index);
 };
 
-
+	map<float,leaf*> mapLeaves ;
+	
+	
     vector<float> readCoord(string line, bool &seen, string &filename){
 
     char *cstr = new char[line.length() + 1];
@@ -149,10 +169,9 @@ using namespace std;
                     reservesArray[index][0] = k->getx();
                     reservesArray[index][1] = k->gety();
                 }
-
-   
   return reservesArray;
   }
+  
   void read(float **array)
   {
 
@@ -168,6 +187,7 @@ using namespace std;
     cout << "col : " << sizeof *array / sizeof **array  << endl;
 
   }
+  
   int readReserves(vector<reserve>& reserves, string reserveFile){
     string line, d;
     int nbreserves = 0;
@@ -201,19 +221,49 @@ using namespace std;
     return nbreserves;
   }
   
-  void splitArray(float **arrayOne, float **arrayTwo, int indexSplit, float **arraySource, int sizeArraySource){
-	  int i,j;
-	  for(i=0; i<indexSplit;i++){
-		  for(j=0;j<2;j++){
-			  arrayOne[i][j]=arraySource[i][j];
+  
+void readTreeLeaves(){
+	   for(auto it = mapLeaves.cbegin(); it != mapLeaves.cend(); ++it)
+			{
+				cout << "leaf : "<< it->first << " vector : " ;
+				vector<reserve> v =((it->second)->getCoordLeaf());
+				for(auto it2=v.cbegin();it2!=v.cend();++it2){
+					reserve r = *it2;
+					float x = r.getx();
+					float y = r.gety();
+					cout << x << " "<<y;
+				}
+				cout<<endl;
+			}
+}
+  bool bintree::add(float* coord, float indexLeaf){
+	  int dim = -1;
+	  do{
+		  dim = (dim + 1) % 2;
+		  if(coord[dim]<=(this->root)){
+			  if(left==right)	break;
+			  (this->left)->add(coord, root);
+		  }else{
+			  if(left==right)	break;
+			  indexLeaf++;
+			  (this->right)->add(coord, root);
 		  }
 	  }
-	  for(i=indexSplit;i<sizeArraySource;i++){
-		  for(j=0;j<2;j++){
-			  arrayTwo[i][j]=arraySource[i][j];
-		  }
+	  while (true);
+	  
+	  map<float, leaf*>::iterator found = mapLeaves.find(indexLeaf);
+	  
+	  if(found==mapLeaves.end()){
+		  leaf* l =new leaf ;
+		  l->addToLeaf(coord);
+		   mapLeaves.insert ( pair<float,leaf*>(indexLeaf, l ));
+	  }else{
+		  ((found->second))->addToLeaf(coord);
 	  }
+	 readTreeLeaves();
+	  return true;
   }
+
   
 //sorting algorithm to place the values of the array in order
 void quickSort2D(float **arr, int left, int right, int n) {
@@ -249,43 +299,7 @@ void quickSort2D(float **arr, int left, int right, int n) {
             quickSort2D(arr, i, right, n);
 }
 
-void bintree::readTree(float **array, int depth,int left, int right){
-	  float **arrayOne;
-	  float **arrayTwo;
-	  int i=left;
-	  int n=0;
-	  depth++;
-	  if(depth%2 != 0) { n = 1; }
-	  quickSort2D(array, left, right, n);
-	  while(this!=nullptr){
-			  if(n==0){
-				  while(array[i][n]<=(this->root)){
-					  i++;}
-				  splitArray(arrayOne, arrayTwo, i, array, right);
-				  (this->left)->readTree(arrayOne, depth, left, i);
-				  (this->right)->readTree(arrayTwo, depth, i+1, right);
-			  }
-			  if(n==1){
-				  while(array[i][n]>(this->root)){
-					  i++;}
-				  splitArray(arrayOne, arrayTwo, i, array, right);
-				  (this->left)->readTree(arrayOne, depth, left, i);
-				  (this->right)->readTree(arrayTwo, depth, i+1, right);
-			  }
-	 }
-	 this->l.push_front(arrayOne);
-	 this->l.push_front(arrayTwo);
-}
 
-
-void display(list<float**> l){
-	if(!l.empty()){
-		list<float**>::iterator it;
-		for(it=l.begin();it!=l.end();it++){
-			cout<<"Val arr : "<<(*it)<<endl;
-		}
-	}
-}
 //finds recursively the median values of the binary search tree to build
 bintree *
 bintree::create2DBST(float **array, int depth, int nbreserves, int left, int right)
@@ -300,14 +314,17 @@ bintree::create2DBST(float **array, int depth, int nbreserves, int left, int rig
   if (right == -1) {right=nbreserves;}
   
   quickSort2D(array, left, right -1, n);
-  if (left == right) { 
-	 // t->readTree(array, depth, left, right);
-	  //display(t->l);
-	  return nullptr; 
-  }
-  if( left == right - 1 ) { return new bintree(array[left][n]); }
   
   int med = (left + right) / 2;
+  
+  if (left == right) { 
+	  return nullptr; 
+  }
+  if( left == right - 1 ) {
+	  t->add(array[left], array[left][n]);
+	  return new bintree(array[left][n]); 
+  }
+  
   t->root = array[med][n];
   tl = create2DBST(array, depth, med, left, med);
   tr = create2DBST(array, depth, right, med + 1, right);
@@ -330,11 +347,12 @@ bintree::createhalf2DBST(float** array, int depth, int nbreserves, int left, int
   if (right == -1) { right = nbreserves;}
   quickSort2D(array, left, right-1, n);
    if (left == right) { 
-	 // t->readTree(array, depth, left, right);
-	  //display(t->l);
 	  return nullptr; 
   }
-  if (left == right - 1 ) {return new bintree(array[left][n]);}
+  if (left == right - 1 ) {
+	  t->add(array[left], array[left][n]);
+	  return new bintree(array[left][n]);
+  }
   
   float halfpoint[2];
   halfpoint[0] = (array[left][0]+array[right-1][0]) / 2 ;
@@ -376,11 +394,13 @@ bintree::createfraction2DBST(float** array, int depth, int nbreserves, int left,
   if (right == -1) { right = nbreserves;}
   quickSort2D(array, left, right-1, n);
    if (left == right) { 
-	 // t->readTree(array, depth, left, right);
-	  //display(t->l);
 	  return nullptr; 
   }
-  if (left == right - 1 ) {cout << "half to one element is element " << array[left][n] << endl; return new bintree(array[left][n]);}
+  if (left == right - 1 ) {
+	  t->add(array[left], array[left][n]);
+	  return new bintree(array[left][n]);
+  }
+	  
   float fractionpoint;
   if(left != right - 1 && right != left){ 
 	  cout << "sorted coordinates in level "<< n << endl;
@@ -507,6 +527,7 @@ cout << "niveles: ";
 		if(splitting == "mediana"){
 			bintree *tree = bintree::create2DBST(reservesArray, depth, nbreserves);
 			bintree::niveles(tree); //Recorrido: por niveles
+			
 			if (tree != nullptr) {delete tree;} //Destrucción
 		}else if(splitting == "mitad"){
 			bintree *tree = bintree::createhalf2DBST(reservesArray, depth, nbreserves);
