@@ -166,7 +166,6 @@ strcpy(cstr, line.c_str());
                 {
                     rcoordarray = k->getCoordinates();
                     distances.push_back(dist(rcoordarray, bcoordarray));
-                    
                 }
 
     return distances;
