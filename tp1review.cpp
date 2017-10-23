@@ -66,10 +66,10 @@ class bintree {
 	  static bintree *create2DBST(float** array, int depth, int nbreserves, int left = 0, int right = -1);
 	  static bintree *createhalf2DBST(float** array, int depth, int nbreserves, int left = 0, int right = -1);
 	  static bintree *createfraction2DBST(float** array, int depth, int nbreserves, int left=0, int right=-1);
-	  bool add(float* coord, float* index);
+	  static void add(float* coord, bintree *t, int depth);
 	  static void readBases(ofstream &ofile, bintree* tree, string baseFile);
 	  static vector<float> evaluateDist(vector<float> bcoordarray, bintree* tree, vector<reserve> reserves);
-	  static float* searchNode(vector<float> bcoordarray, bintree* tree, int depth);
+	  static bintree* searchNode(vector<float> bcoordarray, bintree* tree, int depth);
 	  static void openOutputFile(bintree* tree, string outputFile, string baseFile);
 };
 
@@ -92,7 +92,7 @@ vector<reserve> leaf::getCoordLeaf(){
 }
 
 //map (leaf's id, leaf of the tree)
-map<float*,leaf*> mapLeaves ;
+map<bintree*,leaf*> mapLeaves ;
 	
 	
 vector<float> readCoord(string line, bool &seen, string &filename){
@@ -173,17 +173,16 @@ float** setReservesArray(vector<reserve>& reserves){
   return reservesArray;
 }
   
-void read(float **array){
+void read(float **array, int nbreserves){
 
     unsigned int i, j;
-    for(i=0; i<(sizeof(array)/sizeof(array[0])); i++){
+    for(i=0; i<nbreserves; i++){
       for(j=0;j<(sizeof(*array)/sizeof(**array)) ;j++){
         cout << array[i][j] << " ";
       }
       cout << endl;
     }
-    int r = sizeof array / sizeof *array;
-    cout << "row : " << r << endl;
+    cout << "row : " << nbreserves << endl;
     cout << "col : " << sizeof *array / sizeof **array  << endl;
 }
   
@@ -225,7 +224,7 @@ void readTreeLeaves(){
 	vector<reserve> v;
 	   for(auto it = mapLeaves.cbegin(); it != mapLeaves.cend(); ++it)
 			{
-				cout << "leaf : "<< *(it->first) << " vector : " ;
+				cout << " vector : " ;
 				 v =((it->second)->getCoordLeaf());
 			
 				for(auto it2=v.cbegin();it2!=v.cend();++it2){
@@ -240,34 +239,69 @@ void readTreeLeaves(){
 }
 
 //Add coordinates to the correspondant leaf of the map. The id of the leaf is the adress of the correspondent root in the tree
-bool bintree::add(float* coord, float* indexLeaf){
-	  int dim = -1;
-	  do{
-		  dim = (dim + 1) % 2;
-		  
-		  if(coord[dim]<=(this->root)){
+void bintree::add(float* coord, bintree *t, int depth){
+	
+	int dim = 0;
+	if(depth%2 != 0) { dim = 1; }
+	
+	if((t->left)!=(t->right)){
+		
+		  if((coord[dim]<=(t->root))){
 			  
-			  if(left==right)	break;
-			  (this->left)->add(coord, &(this->root));
+			  if((t->left)!=nullptr){
+				  depth++;
+				  add(coord, t->left, depth);
+			  }else{
+				  map<bintree*, leaf*>::iterator found = mapLeaves.find(t);
+	  
+				  if(found==mapLeaves.end()){
+					  cout<<"Nouvelle feuille ajoutée : "<<t<<" coord : "<<coord[0]<<" , "<<coord[1]<<endl;
+					  leaf* l = new leaf ;
+					  l->addToLeaf(coord);
+					  mapLeaves.insert ( pair<bintree*,leaf*>(t, l ));
+					   
+				  }else{
+					  cout<<"Coord ajoutées à feuille déjà existante : "<<t<<" coord : "<<coord[0]<<" , "<<coord[1]<<endl;
+					  ((found->second))->addToLeaf(coord);
+				  }
+			  }			  
 			  
 		  }else{
 			  
-			  if(left==right)	break;
-			  (this->right)->add(coord, &(this->root));
-		  }
-	  }
-	  while (true);
+			  if((t->right)!=nullptr){
+				  depth++;
+				  add(coord, t->right, depth);
+				  
+			  }else{
+				  map<bintree*, leaf*>::iterator found = mapLeaves.find(t);
 	  
-	  map<float*, leaf*>::iterator found = mapLeaves.find(indexLeaf);
+				  if(found==mapLeaves.end()){
+					  cout<<"Nouvelle feuille ajoutée : "<<t<<" coord : "<<coord[0]<<" , "<<coord[1]<<endl;
+					  leaf* l = new leaf ;
+					  l->addToLeaf(coord);
+					  mapLeaves.insert ( pair<bintree*,leaf*>(t, l ));
+					   
+				  }else{
+					  cout<<"Coord ajoutées à feuille déjà existante : "<<t<<" coord : "<<coord[0]<<" , "<<coord[1]<<endl;
+					  ((found->second))->addToLeaf(coord);
+				  }
+			  }			  
+		  }
+	}else{
+	  
+	  map<bintree*, leaf*>::iterator found = mapLeaves.find(t);
 	  
 	  if(found==mapLeaves.end()){
+		  cout<<"Nouvelle feuille ajoutée : "<<t<<" coord : "<<coord[0]<<" , "<<coord[1]<<endl;
 		  leaf* l = new leaf ;
 		  l->addToLeaf(coord);
-		   mapLeaves.insert ( pair<float*,leaf*>(indexLeaf, l ));
+		  mapLeaves.insert ( pair<bintree*,leaf*>(t, l ));
+		   
 	  }else{
+		  cout<<"Coord ajoutées à feuille déjà existante : "<<t<<" coord : "<<coord[0]<<" , "<<coord[1]<<endl;
 		  ((found->second))->addToLeaf(coord);
 	  }
-	  return true;
+  }
 }
 
   
@@ -326,10 +360,7 @@ bintree::create2DBST(float **array, int depth, int nbreserves, int left, int rig
   }
   
   if( left == right - 1 ) {
-	  t = new bintree(array[left][n]);
-	  //add the coord to the correspondent leaf of the tree
-	  t->add(array[left], &(t->root));
-	  return t; 
+	  return new bintree(array[left][n]);
   }
   
   int med = (left + right) / 2;
@@ -359,9 +390,6 @@ bintree::createhalf2DBST(float** array, int depth, int nbreserves, int left, int
 	  return nullptr; 
   }
   if (left == right - 1 ) {
-	  t = new bintree(array[left][n]);
-	  //add the coord to the correspondent leaf of the tree
-	  t->add(array[left], &(t->root));
 	  return new bintree(array[left][n]);
   }
   
@@ -408,9 +436,6 @@ bintree::createfraction2DBST(float** array, int depth, int nbreserves, int left,
 	  return nullptr; 
   }
   if (left == right - 1 ) {
-	  t = new bintree(array[left][n]);
-	  //add the coord to the correspondent leaf of the tree
-	  t->add(array[left], &(t->root));
 	  return new bintree(array[left][n]);
   }
 	  
@@ -442,9 +467,7 @@ bintree::createfraction2DBST(float** array, int depth, int nbreserves, int left,
 void
 bintree::niveles(bintree *tree)
 {
-	
-    cout<< "adresse tree dans niveles : "<<&tree<<endl;
-	readTreeLeaves();
+	//readTreeLeaves();
 	cout << "niveles: ";
   char const *comma = "";
   queue<bintree const *> q;
@@ -475,31 +498,42 @@ float dist (vector<float>& d1, vector<float>& d2){
     return sqrt(sum);
 }
 //search the closest node to the given coord in the tree
-/* NE FONCTIONNE PAS*/
-float* bintree::searchNode(vector<float> bcoordarray, bintree* tree, int depth){
-	unsigned int n = 0;
-    depth++;
-    if(depth%2 != 0) {n = 1;}
-    cout<<(tree->root)<<" "<<(tree->left)<<" "<<(tree->right)<<endl;
-    
-	if((bcoordarray[n]<=(tree->root)) && (tree->left)!=(tree->right)){
+/*NE FONCTIONNE PAS*/
+bintree* bintree::searchNode(vector<float> bcoordarray, bintree* t, int depth){
+			
+	int dim = 0;
+	if((depth % 2)!=0){dim=1;}
+	
+	if((t->left)!=(t->right)){
 		
-		return searchNode(bcoordarray, tree->left, depth);
-		
-	}else if((tree->left)!=(tree->right)){
-		
-		return searchNode(bcoordarray, tree->right, depth);
-	}
-		return &(tree->root);
+		  if(bcoordarray[dim]<=(t->root)){
+			  
+			  if((t->left)!=nullptr){
+				  searchNode(bcoordarray, (t->left), ++depth);
+			  }else{
+				  return t;
+			  }			  
+			  
+		  }else{
+			  
+			  if((t->right)!=nullptr){
+				  searchNode(bcoordarray, (t->right), ++depth);
+			  }else{
+				  return t;
+			  }			  
+		  }
+	}else{
+	  return t;
+	}		
 }
 
 //given the adress of the node returned by searchNode, searchVectorNode search into mapLeaves 
 //the correspondent leaf of the tree and the vector of reserves into that leaf
-vector<reserve> searchVectorNode(float* indexMap){
+vector<reserve> searchVectorNode(bintree* indext){
 	vector<reserve> rcoordarray;
 	for(auto it = mapLeaves.cbegin(); it != mapLeaves.cend(); ++it)
 			{
-				if((it->first)==indexMap){
+				if((it->first)==indext){
 					rcoordarray =(it->second)->getCoordLeaf();
 					break;
 				}
@@ -555,7 +589,6 @@ void writeOutputFile(vector<float> output, ofstream &file){
 
 void bintree::readBases(ofstream &ofile, bintree* tree, string baseFile){
 	
-    cout<< "adresse tree dans readBases : "<<&tree<<endl;
     string bline;
     vector<float> output, cd, c;
     ifstream bfile ;
@@ -566,23 +599,23 @@ void bintree::readBases(ofstream &ofile, bintree* tree, string baseFile){
     if (bfile.is_open())
     {
       while(getline(bfile, bline)){
-  		c = readCoord(bline, seen, baseFile);
-      if(c.size()!=dim){
-        cout << "ERROR : The base file has bases with a different dimension than the reserves, dimension must be " << dim << endl; exit (EXIT_FAILURE);
-      }
-  		 if(!c.size()) {
-  		 ofile.close();
-  		 ofile.open("output.txt", std::ofstream::out | std::ofstream::trunc);
-  		 ofile << "ERROR : One line is empty, please fill the empty line and re-run the program." << endl;
-  		 cout << "ERROR : the file must not contain any empty line, please fill the empty line and re-run the program." << endl; exit (EXIT_FAILURE);
-      }
-      //recherche du noeud pointant sur la feuille la plus proche de la base c
-      float* indexMap = bintree::searchNode(c, tree, 0);
-      //recuperation du vecteur de coordonnées de réserves stockées sur la feuille
-      vector<reserve> reserves = searchVectorNode(indexMap);
-      cd = bintree::evaluateDist(c, tree, reserves);
-      output = findNearestReserve(min(cd), reserves);
-      writeOutputFile(output, ofile);
+		  c = readCoord(bline, seen, baseFile);
+		  if(c.size()!=dim){
+			cout << "ERROR : The base file has bases with a different dimension than the reserves, dimension must be " << dim << endl; exit (EXIT_FAILURE);
+		  }
+			 if(!c.size()) {
+			 ofile.close();
+			 ofile.open("output.txt", std::ofstream::out | std::ofstream::trunc);
+			 ofile << "ERROR : One line is empty, please fill the empty line and re-run the program." << endl;
+			 cout << "ERROR : the file must not contain any empty line, please fill the empty line and re-run the program." << endl; exit (EXIT_FAILURE);
+		  }
+		  //recherche du noeud pointant sur la feuille la plus proche de la base c
+		  bintree* indext = bintree::searchNode(c, tree, 0);
+		  //recuperation du vecteur de coordonnées de réserves stockées sur la feuille
+		  vector<reserve> reserves = searchVectorNode(indext);
+		  cd = bintree::evaluateDist(c, tree, reserves);
+		  output = findNearestReserve(min(cd), reserves);
+		  writeOutputFile(output, ofile);
       }
 
       bfile.close();
@@ -592,7 +625,6 @@ void bintree::readBases(ofstream &ofile, bintree* tree, string baseFile){
 
 void bintree::openOutputFile(bintree* tree, string outputFile, string baseFile){
     
-    cout<< "adresse tree dans opent output : "<<&tree<<endl;
     ofstream ofile;
     ofile.open (outputFile.c_str());
     if (!ofile.is_open())
@@ -603,8 +635,16 @@ void bintree::openOutputFile(bintree* tree, string outputFile, string baseFile){
     ofile.close();
   }
 
-int main (int argc, char* argv[]) {
 
+void addLeavesToTree(float** reservesArray, bintree* t, int nbreserves){
+	 unsigned int i, j;
+    for(i=0; i<nbreserves; i++){
+		cout<<reservesArray[i]<<" ";
+        bintree::add(reservesArray[i], t, 0);
+    }
+}
+
+int main (int argc, char* argv[]) {
   	bool points=false, input=false, output=false, heuristic=false;
   	vector<reserve> reserves;
     float **reservesArray=NULL;
@@ -612,9 +652,9 @@ int main (int argc, char* argv[]) {
     vector <string> cinbases;
     vector <float> outputv;
     bintree *tree ;
-    cout<< "adresse tree debut main : "<<&tree<<endl;
     int depth = -1;
   	int nbreserves;
+  	
   	for (int i = 1; i < argc; ++i) {
           string arg = argv[i];
   		if((arg == "-p")||(arg=="--points")) {
@@ -622,8 +662,7 @@ int main (int argc, char* argv[]) {
   			if (i + 1 < argc) {
   				nbreserves = readReserves(reserves, argv[++i]);
 				reservesArray = setReservesArray(reserves);
-				read(reservesArray);
-
+				read(reservesArray, nbreserves);
   		  } else {
   			  cerr << "-p option requires one argument." << endl;
 				exit (EXIT_FAILURE);
@@ -680,36 +719,33 @@ int main (int argc, char* argv[]) {
 	  // }
 	if(heuristic){
 		if(splitting == "mediana"){
-			
 			tree = bintree::create2DBST(reservesArray, depth, nbreserves);
-			
 			bintree::niveles(tree); //Recorrido: por niveles
-			
 			if (tree != nullptr) {delete tree;} //Destrucción
+			
 		}else if(splitting == "mitad"){
 			bintree *tree = bintree::createhalf2DBST(reservesArray, depth, nbreserves);
 			bintree::niveles(tree); //Recorrido: por niveles
 			if (tree != nullptr) {delete tree;} //Destrucción
+			
 		}else if(splitting == "promedio"){
 			bintree *tree = bintree::createfraction2DBST(reservesArray, depth, nbreserves);
 			bintree::niveles(tree); //Recorrido: por niveles
 			if (tree != nullptr) {delete tree;} //Destrucción
+			
 		}else{
 			cerr << "-s option accepts only mediana, mitad or promedio arguments." << endl;
             exit (EXIT_FAILURE);
 		}
 	}else{
 		
-    cout<< "adresse tree avant create : "<<&tree<<endl;
 		tree = bintree::create2DBST(reservesArray, depth, nbreserves);
-    cout<< "adresse tree avant niveles : "<<&tree<<endl;
+		addLeavesToTree(reservesArray, tree, nbreserves);
 		bintree::niveles(tree); //Recorrido: por niveles
 		if (tree != nullptr) {delete tree;} //Destrucción
 	}
 	if((input) && (output))
   	 {
-		 
-    cout<< "adresse tree avant outputfile : "<<&tree<<endl;
   	  bintree::openOutputFile(tree, outputf, basef);
   	 }
     for (unsigned int i = 0;i<reserves.size();i++) { delete[] reservesArray[i]; }
