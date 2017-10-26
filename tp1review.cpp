@@ -524,7 +524,8 @@ bintree* bintree::searchNode(vector<float> bcoordarray, bintree* t, int depth){
 		  }
 	}else{
 	  return t;
-	}		
+	}
+  return t;		
 }
 
 //given the adress of the node returned by searchNode, searchVectorNode search into mapLeaves 
