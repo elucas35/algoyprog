@@ -1,0 +1,30 @@
+
+#include "main.cpp"
+using namespace std;
+//leaves of the tree
+class leaf{
+	private:
+		vector< reserve > coordleaf;
+	public:
+		void addToLeaf(float* coord);
+		vector<reserve> getCoordLeaf();
+};
+void leaf::addToLeaf(float* coord){
+	reserve r;
+	r.setx(coord[0]);
+	r.sety(coord[1]);
+	coordleaf.push_back(r);
+}
+vector<reserve> leaf::getCoordLeaf(){
+	return coordleaf;
+}
+
+
+
+void addLeavesToTree(float** reservesArray, bintree* t, int nbreserves){
+	 unsigned int i, j;
+    for(i=0; i<nbreserves; i++){
+		cout<<reservesArray[i]<<" ";
+        bintree::add(reservesArray[i], t, 0);
+    }
+}

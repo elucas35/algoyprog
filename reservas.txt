@@ -1,4 +1,4 @@
-2 //ordre croissant x 1 2 3 4 5 6 7 7 8 9 mediane : 6 ordre y 1 2 3 4 6 7 8 8 9 9
+2 //ordre croissant x 1 2 3 4 5 6 7 7 8 9 mediane : 6 ordre y 1 2 3 4 6 7
 1 9
 2 3 
 4 1
@@ -9,3 +9,4 @@
 8 8 
 7 9
 9 6
+

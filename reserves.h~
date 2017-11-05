@@ -1,0 +1,74 @@
+
+#include "main.cpp"
+using namespace std;
+class reserve
+{
+    private:
+    float x, y;
+    int dimension;
+    
+    public:
+    void setx(float);
+    void sety(float);
+    float getx();
+    float gety();
+    int getDim();
+  };
+
+  void reserve::setx(float coordx){
+    x = coordx;
+  }
+  void reserve::sety(float coordy){
+    y = coordy;
+  }
+  float reserve::getx(){
+    return x;
+  }
+  float reserve::gety(){
+    return y;
+  }
+  int reserve::getDim(){
+    cout << "2" << endl;
+    return 2;
+}
+
+void setReserveWithCoord(vector<float> coordarray, vector<reserve>& reserves){
+
+    reserve r;
+    r.setx(coordarray[0]);
+    r.sety(coordarray[1]);
+    reserves.push_back(r);
+
+}
+
+float** setReservesArray(vector<reserve>& reserves){
+    
+    int index = 0;
+    float ** reservesArray = new float *[reserves.size()];
+    for(unsigned int i = 0; i <reserves.size(); i++)
+       { reservesArray[i] = new float[2];
+       }
+
+    for (vector<reserve>::iterator k = reserves.begin(); 
+                             k != reserves.end(); 
+                             ++k) 
+                {
+                    index = distance(reserves.begin(), k);
+                    reservesArray[index][0] = k->getx();
+                    reservesArray[index][1] = k->gety();
+                }
+  return reservesArray;
+}
+
+void read(float **array, int nbreserves){
+
+    unsigned int i, j;
+    for(i=0; i<nbreserves; i++){
+      for(j=0;j<(sizeof(*array)/sizeof(**array)) ;j++){
+        cout << array[i][j] << " ";
+      }
+      cout << endl;
+    }
+    cout << "row : " << nbreserves << endl;
+    cout << "col : " << sizeof *array / sizeof **array  << endl;
+}

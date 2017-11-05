@@ -1,0 +1,98 @@
+#include "main.cpp"
+using namespace std;
+
+	
+vector<float> readCoord(string line, bool &seen, string &filename){
+
+    char *cstr = new char[line.length() + 1];
+    unsigned int i, l;
+    float coord;
+    string s, t;
+    vector< string > arr;
+    vector< float > coordarray;
+    bool error = false;
+    
+
+    strcpy(cstr, line.c_str());
+      
+      for(i=0;i<line.size();i++){
+        if(cstr[i] != ' ') {
+          if((isdigit(cstr[i]) || cstr[i] == '.') || cstr[i] == '-') s += cstr[i];
+          else  if (seen) {
+                cout << "Please replace the character " << cstr[i] << "." <<endl;
+                }
+                else {
+                  seen = true;
+                  cout << "ERROR : The file " << filename << " must contain only the dot character which is '.' and/or numbers." << endl;
+                  cout << "Please replace the character " << cstr[i] << ". And check the rest of the file."  << endl;
+                  error = true;
+                }
+        }
+        else {
+
+        t+=s;
+        arr.push_back(s);
+        s="";
+        }
+      
+    }
+      arr.push_back(s);
+      for (l=0; l<arr.size(); l++){
+        
+        if( arr[l] != "") {
+          coord = stof(arr[l]);
+          coordarray.push_back(coord);
+        }
+      }
+
+      delete [] cstr;
+          if(error) {
+            cout << "And re-run the program" << endl; exit (EXIT_FAILURE);
+          }
+    return coordarray;
+}
+    
+int readReserves(vector<reserve>& reserves, string reserveFile){
+    string line, d;
+    int nbreserves = 0;
+    unsigned int dimension = 0;
+    bool seen =false;
+    vector<float> c, output, cd;
+
+
+    ifstream file;
+    file.open(reserveFile);
+    if (file.is_open())
+    {
+      getline (file,d);
+      dimension = stoi(d);
+      
+      while(getline(file, line)){
+      nbreserves++;
+      c = readCoord(line, seen, reserveFile);
+      if(c.size() != dimension) {
+            cout << "ERROR : One reserve has coordinates of wrong dimension, dimension must be "<< dimension <<  " . Please correct it and re-run the program." << endl; exit (EXIT_FAILURE);
+          }
+      if(!c.size()) {
+            cout << "ERROR : the file "<< reserveFile << " must not contain any empty line, please fill the empty line and re-run the program." << endl; exit (EXIT_FAILURE);
+          }
+      setReserveWithCoord(c, reserves);
+      }
+      file.close();
+    }
+
+    else cout << "Error when opening reserves files " << endl;;
+    return nbreserves;
+}
+
+
+
+
+void writeOutputFile(vector<float> output, ofstream &file){
+	unsigned int a;
+    for(a=0; a < output.size(); a++){
+      file << output[a] << " ";
+    }
+    file << endl;
+}
+
