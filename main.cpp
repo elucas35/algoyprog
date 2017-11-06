@@ -274,6 +274,8 @@ void quickSort2D(float **arr, int left, int right, int n) {
 bintree *
 bintree::create2DBST(float **array, int depth, int nbreserves, int left, int right)
 {
+
+  
   int n=0;
   depth++;
   bintree *t = new bintree;
@@ -282,24 +284,37 @@ bintree::create2DBST(float **array, int depth, int nbreserves, int left, int rig
 
   if(depth%2 != 0) { n = 1; }
   if (right == -1) {right=nbreserves;}
+
   
   quickSort2D(array, left, right -1, n);
+      int i;
+      cout << "array : ";
+  for(i=0;i<5;i++){
+    cout  <<array[i][n];
+  }
+  cout << endl;
   
   if (left == right) { 
 	  return nullptr; 
   }
   
-  if( left == right - 1 ) {
-	  return new bintree(array[left][n]);
+  if( left == right - 5 ) {
+
+	  return new bintree(array[(( (right - left) / 2) + left)][n]);
   }
-  if( left != right - 2 ){
+  else if(right - left > 5) {
+    cout << "tree"<< endl;
   int med = (left + right) / 2;
   t->root = array[med][n];
   tl = create2DBST(array, depth, med, left, med);
-  tr = create2DBST(array, depth, right, med + 1, right);
+  tr = create2DBST(array, depth, right, med , right);
   t->left = tl;
   t->right = tr;
+
 }
+
+
+
 return t;
 }
 
