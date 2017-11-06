@@ -45,12 +45,13 @@ class bintree {
 	  float root;
 	  bintree *left;
 	  bintree *right;
+    bintree *prev;
 
 	public:
-	  bintree() : left(nullptr), right(nullptr){
+	  bintree() : left(nullptr), right(nullptr), prev(nullptr){
 	  }
 
-	  bintree(const float &t) : root(t), left(nullptr), right(nullptr) {
+	  bintree(const float &t) : root(t), left(nullptr), right(nullptr), prev(nullptr) {
 	  }
 
 	  ~bintree() {
@@ -59,10 +60,13 @@ class bintree {
 
 		if (right != nullptr)
 		  delete right;
+
+    if (prev != nullptr)
+      delete prev;
 	  }
 
 	  static void niveles(bintree *);
-	  static bintree *create2DBST(float** array, int depth, int nbreserves, int left = 0, int right = -1);
+	  static bintree *create2DBST(float** array, int depth, int nbreserves, int left = 0, int right = -1, bintree* prevt=nullptr);
 	  static bintree *createhalf2DBST(float** array, int depth, int nbreserves, int left = 0, int right = -1);
 	  static bintree *createfraction2DBST(float** array, int depth, int nbreserves, int left=0, int right=-1);
 	  static void add(float* coord, bintree *t, int depth);
@@ -71,7 +75,9 @@ class bintree {
 	  static bintree* searchNode(vector<float> bcoordarray, bintree* tree, int depth);
 	  static void openOutputFile(bintree* tree, string outputFile, string baseFile);
 	  static void checkTree(bintree* tree);
+    static void checkTreePrev(bintree* indext);
 	  static vector<reserve> searchVectorNode(bintree* indext);
+    static vector<bintree *> searchNeighbors(vector<float> bcoordarray, bintree* tree);
 };
 
  //leaves of the tree
@@ -272,51 +278,60 @@ void quickSort2D(float **arr, int left, int right, int n) {
 
 //finds recursively the median values of the binary search tree to build
 bintree *
-bintree::create2DBST(float **array, int depth, int nbreserves, int left, int right)
+bintree::create2DBST(float **array, int depth, int nbreserves, int left, int right, bintree* prevt)
 {
-
-  
   int n=0;
   depth++;
   bintree *t = new bintree;
   bintree *tl;
   bintree *tr;
 
+  
+  
+  
   if(depth%2 != 0) { n = 1; }
   if (right == -1) {right=nbreserves;}
-
   
   quickSort2D(array, left, right -1, n);
-      int i;
-      cout << "array : ";
-  for(i=0;i<5;i++){
-    cout  <<array[i][n];
-  }
-  cout << endl;
   
   if (left == right) { 
 	  return nullptr; 
   }
-  
-  if( left == right - 5 ) {
-
-	  return new bintree(array[(( (right - left) / 2) + left)][n]);
+  if(prevt != nullptr) cout  << " prevt " << prevt->root << " profondeur : "<< depth<< endl;
+  if( left == right - 1 ) {
+	  return new bintree(array[left][n]);
   }
-  else if(right - left > 5) {
-    cout << "tree"<< endl;
+  
+
   int med = (left + right) / 2;
   t->root = array[med][n];
-  tl = create2DBST(array, depth, med, left, med);
-  tr = create2DBST(array, depth, right, med , right);
+  t->prev = prevt;
+  tl = create2DBST(array, depth, med, left, med, t);
+  tr = create2DBST(array, depth, right, med + 1, right, t);
   t->left = tl;
   t->right = tr;
+  
 
-}
-
-
+  
 
 return t;
 }
+
+  
+//   if( left == right - 5 ) {
+
+//     return new bintree(array[(( (right - left) / 2) + left)][n]);
+//   }
+//   else if(right - left > 5) {
+//     cout << "tree"<< endl;
+//   int med = (left + right) / 2;
+//   t->root = array[med][n];
+//   tl = create2DBST(array, depth, med, left, med);
+//   tr = create2DBST(array, depth, right, med , right);
+//   t->left = tl;
+//   t->right = tr;
+
+// }
 
 //finds recursively the half values of the binary search tree to build
 bintree *
@@ -454,6 +469,14 @@ bintree* bintree::searchNode(vector<float> bcoordarray, bintree* t, int depth){
 		}
 		
 		  return t;
+}
+// //search the neigbors areas
+vector<bintree*> bintree::searchNeighbors(bintree* indext){
+  vector<bintree*> indextVect;
+  if((indext->prev)->left != indext && (indext->left == nullptr && indext->right == nullptr))  {indextVect.push_back((indext->prev)->left);}
+  else if(indext->prev)->right != indext && (indext->left == nullptr && indext->right == nullptr)) { indextVect.push_back((indext->prev)->right);}
+  else  searchNeighbors(indext->prev);
+  return indextVect;
 }
 
 //given the adress of the node returned by searchNode, searchVectorNode search into mapLeaves 
@@ -638,6 +661,18 @@ void writeOutputFile(vector<float> output, ofstream &file){
     }
     file << endl;
 }
+ void bintree::checkTreePrev(bintree* indext){
+    if(indext!=nullptr){
+      cout<<"noeud : "<<indext->root<<endl;
+      if(indext->prev){ bintree::checkTreePrev(indext->prev);
+        cout << "il y a un prev" << endl;
+      }
+      else cout << "racine" << endl;
+    }else{
+      cout<<"arbre vide"<<endl;
+    }
+  }
+
 
 //When both input and output file are provided
 void bintree::readBases(ofstream &ofile, bintree* tree, string baseFile){
@@ -669,6 +704,8 @@ void bintree::readBases(ofstream &ofile, bintree* tree, string baseFile){
 		  cd = bintree::evaluateDist(c, tree, reserves);
 		  output = findNearestReserve(min(cd), reserves);
 		  writeOutputFile(output, ofile);
+      //bintree::checkTreePrev(indext);
+      vector<bintree*> indextVector= bintree::searchNeighbors(c, tree);
       }
 
       bfile.close();
@@ -838,7 +875,7 @@ int main (int argc, char* argv[]) {
   			if (i + 1 < argc) {
   				nbreserves = readReserves(reserves, argv[++i]);
 				reservesArray = setReservesArray(reserves);
-				read(reservesArray, nbreserves);
+				//read(reservesArray, nbreserves);
   		  } else {
   			  cerr << "-p option requires one argument." << endl;
 				exit (EXIT_FAILURE);
@@ -874,14 +911,17 @@ int main (int argc, char* argv[]) {
 	if(heuristic){
 		if(splitting == "mediana"){
 			tree = bintree::create2DBST(reservesArray, depth, nbreserves);
+      addLeavesToTree(reservesArray, tree, nbreserves);
 			bintree::niveles(tree); //Recorrido: por niveles
 			
 		}else if(splitting == "mitad"){
 			bintree *tree = bintree::createhalf2DBST(reservesArray, depth, nbreserves);
+      addLeavesToTree(reservesArray, tree, nbreserves);
 			bintree::niveles(tree); //Recorrido: por niveles
 			
 		}else if(splitting == "promedio"){
 			bintree *tree = bintree::createfraction2DBST(reservesArray, depth, nbreserves);
+      addLeavesToTree(reservesArray, tree, nbreserves);
 			bintree::niveles(tree); //Recorrido: por niveles
 			
 		}else{
