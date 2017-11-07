@@ -45,13 +45,16 @@ class bintree {
 	  float root;
 	  bintree *left;
 	  bintree *right;
-    bintree *prev;
+	  bintree *prev;
 
 	public:
 	  bintree() : left(nullptr), right(nullptr), prev(nullptr){
 	  }
 
 	  bintree(const float &t) : root(t), left(nullptr), right(nullptr), prev(nullptr) {
+	  }
+	  
+	  bintree(const float &t, bintree* prevt) : root(t), left(nullptr), right(nullptr), prev(prevt) {
 	  }
 
 	  ~bintree() {
@@ -61,8 +64,6 @@ class bintree {
 		if (right != nullptr)
 		  delete right;
 
-    if (prev != nullptr)
-      delete prev;
 	  }
 
 	  static void niveles(bintree *);
@@ -77,7 +78,7 @@ class bintree {
 	  static void checkTree(bintree* tree);
     static void checkTreePrev(bintree* indext);
 	  static vector<reserve> searchVectorNode(bintree* indext);
-    static vector<bintree *> searchNeighbors(vector<float> bcoordarray, bintree* tree);
+    static vector<bintree *> searchNeighbors(vector<float> bcoordarray);
 };
 
  //leaves of the tree
@@ -285,9 +286,6 @@ bintree::create2DBST(float **array, int depth, int nbreserves, int left, int rig
   bintree *t = new bintree;
   bintree *tl;
   bintree *tr;
-
-  
-  
   
   if(depth%2 != 0) { n = 1; }
   if (right == -1) {right=nbreserves;}
@@ -299,7 +297,7 @@ bintree::create2DBST(float **array, int depth, int nbreserves, int left, int rig
   }
   if(prevt != nullptr) cout  << " prevt " << prevt->root << " profondeur : "<< depth<< endl;
   if( left == right - 1 ) {
-	  return new bintree(array[left][n]);
+	  return new bintree(array[left][n], prevt);
   }
   
 
@@ -310,9 +308,6 @@ bintree::create2DBST(float **array, int depth, int nbreserves, int left, int rig
   tr = create2DBST(array, depth, right, med + 1, right, t);
   t->left = tl;
   t->right = tr;
-  
-
-  
 
 return t;
 }
@@ -463,6 +458,7 @@ bintree* bintree::searchNode(vector<float> bcoordarray, bintree* t, int depth){
 			  }
 			  
 		}else {
+			
 			  if((t->right)!=nullptr){
 				  return searchNode(bcoordarray, (t->right), ++depth);
 			  }
@@ -471,13 +467,13 @@ bintree* bintree::searchNode(vector<float> bcoordarray, bintree* t, int depth){
 		  return t;
 }
 // //search the neigbors areas
-vector<bintree*> bintree::searchNeighbors(bintree* indext){
+/*vector<bintree*> bintree::searchNeighbors(bintree* indext){
   vector<bintree*> indextVect;
   if((indext->prev)->left != indext && (indext->left == nullptr && indext->right == nullptr))  {indextVect.push_back((indext->prev)->left);}
   else if(indext->prev)->right != indext && (indext->left == nullptr && indext->right == nullptr)) { indextVect.push_back((indext->prev)->right);}
-  else  searchNeighbors(indext->prev);
+  else  indextVect = searchNeighbors(indext->prev);
   return indextVect;
-}
+}*/
 
 //given the adress of the node returned by searchNode, searchVectorNode search into mapLeaves 
 //the correspondent leaf of the tree and the vector of reserves into that leaf
@@ -661,16 +657,15 @@ void writeOutputFile(vector<float> output, ofstream &file){
     }
     file << endl;
 }
+
+
  void bintree::checkTreePrev(bintree* indext){
-    if(indext!=nullptr){
-      cout<<"noeud : "<<indext->root<<endl;
-      if(indext->prev){ bintree::checkTreePrev(indext->prev);
-        cout << "il y a un prev" << endl;
-      }
-      else cout << "racine" << endl;
-    }else{
-      cout<<"arbre vide"<<endl;
-    }
+	if(indext->prev){
+		cout<< "Le noeud : "<<indext->root<< " a un prev."<<endl;
+		checkTreePrev(indext->prev);
+	}else{
+		cout<<"Le noeud : "<<indext->root<<" n'a pas de prev"<<endl;
+	}
   }
 
 
@@ -703,9 +698,9 @@ void bintree::readBases(ofstream &ofile, bintree* tree, string baseFile){
 		 vector<reserve> reserves = bintree::searchVectorNode(indext);
 		  cd = bintree::evaluateDist(c, tree, reserves);
 		  output = findNearestReserve(min(cd), reserves);
+		  bintree::checkTreePrev(indext);
 		  writeOutputFile(output, ofile);
-      //bintree::checkTreePrev(indext);
-      vector<bintree*> indextVector= bintree::searchNeighbors(c, tree);
+     // vector<bintree*> indextVector= bintree::searchNeighbors(c, tree);
       }
 
       bfile.close();
