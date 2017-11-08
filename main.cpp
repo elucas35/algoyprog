@@ -14,13 +14,16 @@ class reserve
     private:
     float x, y;
     int dimension;
+    friend float operator+(const reserve &r1, const reserve &r2);
     
     public:
     void setx(float);
     void sety(float);
-    float getx();
-    float gety();
-    int getDim();
+    float getx() const;
+    float gety() const;
+    int getDim() const;
+    float operator[](const int index) const;
+    float addReserve(reserve const &r2) const;
   };
 
   void reserve::setx(float coordx){
@@ -29,16 +32,29 @@ class reserve
   void reserve::sety(float coordy){
     y = coordy;
   }
-  float reserve::getx(){
+  float reserve::getx() const{
     return x;
   }
-  float reserve::gety(){
+  float reserve::gety() const{
     return y;
   }
-  int reserve::getDim(){
+  int reserve::getDim() const{
     cout << "2" << endl;
     return 2;
-}
+  }
+  float reserve::operator[](const int index) const{
+	  if(index==0) return x;
+	  if(index==1) return y;
+	  cout<<"a reserve can only have 2 coordinates, the index must be 0 or 1."<<endl;
+	  exit(EXIT_FAILURE);
+  }
+  float reserve::addReserve(const reserve &r2) const{
+	  return sqrt(pow(getx()-r2[0],2) + pow(gety()-r2[1],2));
+  }
+  
+  float operator+(const reserve &r1, const reserve &r2){
+	  return r1.addReserve(r2);
+  }
 
 class bintree {
 	private:
@@ -72,7 +88,7 @@ class bintree {
 	  static bintree *createfraction2DBST(float** array, int depth, int nbreserves, int left=0, int right=-1);
 	  static void add(float* coord, bintree *t, int depth);
 	  static void readBases(ofstream &ofile, bintree* tree, string baseFile);
-	  static vector<float> evaluateDist(vector<float> bcoordarray, bintree* tree, vector<reserve> reserves);
+	  
 	  static bintree* searchNode(vector<float> bcoordarray, bintree* tree, int depth);
 	  static void openOutputFile(bintree* tree, string outputFile, string baseFile);
 	  static void checkTree(bintree* tree);
@@ -629,7 +645,7 @@ vector<reserve> bintree::searchVectorNode(bintree* indext){
 }
 
 //return a vector of distances between a base and the reserves
-vector<float> bintree::evaluateDist(vector<float> bcoordarray, bintree* tree, vector<reserve> reserves){
+vector<float> evaluateDist(vector<float> bcoordarray, vector<reserve> reserves){
 
     vector<float> rcoordarray = {0,0};
     vector<float> distances;
@@ -642,8 +658,11 @@ vector<float> bintree::evaluateDist(vector<float> bcoordarray, bintree* tree, ve
 					//cout<< rcoordarray[0]<< " "<<rcoordarray[1]<<endl;
 					
 				}
-				
-	distances.push_back(dist(rcoordarray, bcoordarray));
+	reserve r;
+	r.setx(rcoordarray[0]);r.sety(rcoordarray[1]);
+	reserve r2;
+	r2.setx(bcoordarray[0]);r2.sety(bcoordarray[1]);
+	distances.push_back(r+r2);
 	//cout<<"distance : "<<dist(rcoordarray, bcoordarray)<<endl;
     return distances;
 }
@@ -829,10 +848,10 @@ void bintree::readBases(ofstream &ofile, bintree* tree, string baseFile){
 		  bintree* indext = bintree::searchNode(c, tree, 0);
 		  //recuperation du vecteur de coordonnées de réserves stockées sur la feuille
 		  vector<reserve> reserves = bintree::searchVectorNode(indext);
-		  cd = bintree::evaluateDist(c, tree, reserves);
+		  cd = evaluateDist(c, reserves);
 		  output = findNearestReserve(min(cd), reserves);
-		  bintree::checkTreePrev(indext);
-		  writeOutputFile(output, ofile);
+		 // bintree::checkTreePrev(indext);
+		  
 		  vector<bintree*> indextVector= bintree::searchNeighbors(indext, nArea);
 		   for (vector<bintree*>::iterator k = indextVector.begin(); 
                              k != indextVector.end(); 
@@ -840,6 +859,7 @@ void bintree::readBases(ofstream &ofile, bintree* tree, string baseFile){
                 {
 					cout<< (*k)->root <<" "<<endl;
 				}
+				writeOutputFile(output, ofile);
       }
 
       bfile.close();
@@ -876,7 +896,7 @@ void readBasesNoOutput(bintree* tree, string baseFile){
 		bintree* indext = bintree::searchNode(c, tree, 0);
 		//recuperation du vecteur de coordonnées de réserves stockées sur la feuille
 		vector<reserve> reserves = bintree::searchVectorNode(indext);
-		cd = bintree::evaluateDist(c, tree, reserves);
+		cd = evaluateDist(c, reserves);
 		output = findNearestReserve(min(cd), reserves);
 		writeOutput(output);
       }
@@ -934,7 +954,7 @@ void readBases(bintree* tree, string outputFile, vector<string>& cinbases, ofstr
 	  bintree* indext = bintree::searchNode(c, tree, 0);
 	  //recuperation du vecteur de coordonnées de réserves stockées sur la feuille
 	  vector<reserve> reserves = bintree::searchVectorNode(indext);
-	  cd = bintree::evaluateDist(c, tree, reserves);
+	  cd = evaluateDist(c, reserves);
 	  output = findNearestReserve(min(cd), reserves);
       
       for(l=0;l<output.size();l++){
@@ -956,7 +976,7 @@ void readBases(bintree* tree, string outputFile, vector<string>& cinbases, ofstr
 			  bintree* indext = bintree::searchNode(c, tree, 0);
 			  //recuperation du vecteur de coordonnées de réserves stockées sur la feuille
 			  vector<reserve> reserves = bintree::searchVectorNode(indext);
-			  cd = bintree::evaluateDist(c, tree, reserves);
+			  cd = evaluateDist(c, reserves);
 			  output = findNearestReserve(min(cd), reserves);
 		  }
 
@@ -983,7 +1003,7 @@ void readBasesNoInputOutput(bintree* tree, vector<string>& cinbases){
 		  bintree* indext = bintree::searchNode(c, tree, 0);
 		  //recuperation du vecteur de coordonnées de réserves stockées sur la feuille
 		  vector<reserve> reserves = bintree::searchVectorNode(indext);
-		  cd = bintree::evaluateDist(c, tree, reserves);
+		  cd = evaluateDist(c, reserves);
 		  output = findNearestReserve(min(cd), reserves);
 		  writeOutput(output);
 		}
