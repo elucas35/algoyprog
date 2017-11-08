@@ -76,10 +76,13 @@ class bintree {
 	  static bintree* searchNode(vector<float> bcoordarray, bintree* tree, int depth);
 	  static void openOutputFile(bintree* tree, string outputFile, string baseFile);
 	  static void checkTree(bintree* tree);
-    static void checkTreePrev(bintree* indext);
+	  static void checkTreePrev(bintree* indext);
 	  static vector<reserve> searchVectorNode(bintree* indext);
-    static vector<bintree *> searchNeighbors(bintree* indext);
-    static float searchFirstLeaf(bintree* indextpp, bool right);
+      static vector<bintree *> searchNeighbors(bintree* indext, int nArea);
+      static bintree* searchFirstLeaf(bintree* indextpp, bool right);
+      static int searchLeaves(bintree* indextpp, int count);
+      static void searchOtherNeighbors(bintree* indext, int nArea, vector<bintree*> &indexVector);
+
     
 };
 
@@ -468,41 +471,84 @@ bintree* bintree::searchNode(vector<float> bcoordarray, bintree* t, int depth){
 		
 		  return t;
 }
-
-float bintree::searchFirstLeaf(bintree* indextpp, bool right){
+void bintree::searchOtherNeighbors( bintree *indext, int nArea, vector<bintree*> &indexVector){
+	bool right = false;
+	if((indext->prev->left) && (indext->prev->left) != indext){
+		right=true;
+	}
+	if(!right && (indext->prev->prev->right)){
+		if(indext->prev->root < indext->prev->prev->right->root){
+			
+			if((indext->prev->prev->right)->left )cout<< "on va voir l'enfant gauche de "<<indext->prev->prev->right->root<< " qui est " << indext->prev->prev->right->left->root<<endl;
+			/*indexVector.push_back(searchFirstLeaf(indext->prev->prev->right, !right);*/
+		}else{
+			
+			if((indext->prev->prev->right)->left ) cout<< "on va voir l'enfant gauche de "<<indext->prev->prev->right->root<< " qui est " << indext->prev->prev->right->left->root;
+			if((indext->prev->prev->right)->right ) cout<<" et son enfant droit qui est "<<indext->prev->prev->right->right->root<<endl;
+			/*indexVector.push_back(searchFirstLeaf(indext->prev->prev->right, !right);*/
+			/*indexVector.push_back(searchFirstLeaf(indext->prev->prev->right, right);*/
+		}
+	}
+	else if(right && (indext->prev->prev->left)){
+		if(indext->prev->root < indext->prev->prev->left->root){
+			if(indext->prev->prev->left->left) cout<< "on va voir l'enfant gauche de "<<indext->prev->prev->left->root<< " qui est " << indext->prev->prev->left->left->root<<endl;
+			/*indexVector.push_back(searchFirstLeaf(indext->prev->prev->left, right);*/
+		}else{
+			if(indext->prev->prev->left->left) cout<< "on va voir l'enfant gauche de "<<indext->prev->prev->left->root<< " qui est " << indext->prev->prev->left->left->root;
+			if(indext->prev->prev->left->right) cout<<" et son enfant droit qui est "<<indext->prev->prev->right->left->root<<endl;
+			/*indexVector.push_back(searchFirstLeaf(indext->prev->prev->left, !right);*/
+			/*indexVector.push_back(searchFirstLeaf(indext->prev->prev->left, right);*/
+		}
+	}
+}
+bintree* bintree::searchFirstLeaf(bintree* indextpp, bool right){
   cout <<"indextpp " <<  indextpp->root <<  right << endl;
   if(right) {
 	  cout<<"je vais explorer le coté droit"<<endl;
     if( (indextpp->right) && (indextpp->right->right == nullptr && indextpp->right->left == nullptr)) {
 		cout << indextpp->right->root << " est une feuille" << endl; 
-		return indextpp->right->root;
+		return indextpp->right;
 	}
     else if(indextpp->right) {
 		cout << indextpp->right->root << " est un noeud" << endl; 
        searchFirstLeaf(indextpp->right, false);
     }else{
 		cout<< "Il n'y a pas de coté droit"<<endl;
-		searchFirstLeaf(indextpp->prev, false);
+		searchFirstLeaf(indextpp, false);
 	}
    } else {
 	  cout<<"je vais explorer le coté gauche"<<endl;
 		if((indextpp->left) && (indextpp->left->right == nullptr && indextpp->left->left == nullptr)) {
 			cout << indextpp->left->root << " est une feuille" << endl; 
-			return indextpp->left->root;
+			return indextpp->left;
 		}
 		else if(indextpp->left){
 			cout << indextpp->left->root << " est un noeud" << endl; 
 		    searchFirstLeaf(indextpp->left, true);
 		}else{
 		cout<< "Il n'y a pas de coté gauche"<<endl;
-			searchFirstLeaf(indextpp->prev, true);
+			searchFirstLeaf(indextpp, true);
 		}
     }  
-return 0;
 }
-// //search the neighbors areas
-vector<bintree*> bintree::searchNeighbors(bintree* indext){
-  //cout<< " noeud : " << indext->root << " son frere droit est : " << ((indext->prev)->right)->root<< endl;
+
+int bintree::searchLeaves(bintree* indextpp, int count){
+	
+    if( indextpp->right== nullptr && indextpp->left == nullptr) {
+		count++;
+	}
+    else{
+		if(indextpp->right) count=searchLeaves(indextpp->right, count);
+       
+		if(indextpp->left) count=searchLeaves(indextpp->left, count);
+    }
+    return count; 
+}
+
+
+//search the neighbors areas
+vector<bintree*> bintree::searchNeighbors(bintree* indext, int nArea){
+	
   vector<bintree*> indextVect;
   //verifie qu'il y a un frere gauche et qu'il n'est pas indext 
   if( (indext->prev->left) && ((indext->prev)->left != indext)) 
@@ -511,11 +557,13 @@ vector<bintree*> bintree::searchNeighbors(bintree* indext){
 	  if(((indext->prev)->left)->left == nullptr && ((indext->prev)->left)->right == nullptr)
 	  {
 		cout << "existe feuille soeur gauche " << endl; 
-		/*indextVect.push_back((indext->prev)->left);*/
+		indextVect.push_back((indext->prev)->left);
+		bintree::searchOtherNeighbors(indext, nArea, indextVect);
 		
 		//ce frere gauche a des enfants
 	  }else{
-		bintree::searchFirstLeaf(indext->prev->left, true);
+		indextVect.push_back(bintree::searchFirstLeaf(indext->prev->left, true));
+		bintree::searchOtherNeighbors(indext, nArea, indextVect);
 	  }
   }
 	//verifie qu'il y a un frere droit et qu'il n'est pas indext 
@@ -525,22 +573,14 @@ vector<bintree*> bintree::searchNeighbors(bintree* indext){
 	  if( (indext->prev->right)->left == nullptr && (indext->prev->right)->right == nullptr)
 		{ 
 			cout << "existe feuille soeur droite " << endl;
-			/*indextVect.push_back((indext->prev)->right);*/
+			indextVect.push_back((indext->prev)->right);
+			bintree::searchOtherNeighbors(indext, nArea, indextVect);
 		}
 		//ce frere droit a des enfants
 		else{
-			bintree::searchFirstLeaf(indext->prev->left, false);
+		indextVect.push_back(bintree::searchFirstLeaf(indext->prev->right, false));
+		bintree::searchOtherNeighbors(indext, nArea, indextVect);
 		}
-  // else if(left) while(indext->prev->left->left != nullptr && indext->prev->left->right != nullptr) 
-  //   indext->prev->left = indext->prev->left->left;
-
-  // else if(right) 
-  // else {
-  //   cout << "n'a pas de frere feuille"<<endl;
-  //   //searchNeighbors(indext->prev);
-  // }
-  
-  //else  indextVect = searchNeighbors(indext->prev);
   }
   //n'a pas de frere donc on va explorer les enfants du grand-père du coté où nous n'étions pas
   else {
@@ -553,18 +593,20 @@ vector<bintree*> bintree::searchNeighbors(bintree* indext){
 			  cout<<"il y a un grand pere qui a des chemins différents du mien"<<endl;
 				if( (indext->prev->left) && (indext->prev->left != indext)){
 					cout<<"racine de mon grandpere : "<<indext->prev->root<<endl;
-					searchFirstLeaf(indext->prev, false);
+					indextVect.push_back(searchFirstLeaf(indext->prev, false));
+					bintree::searchOtherNeighbors(indext->right, nArea, indextVect);
 					found=true;
 				}else if( (indext->prev->right) && (indext->prev->right != indext)){
 					cout<<"racine de mon grandpere : "<<indext->prev->root<<endl;
-					searchFirstLeaf(indext->prev, true);
+					indextVect.push_back(searchFirstLeaf(indext->prev, true));
+					bintree::searchOtherNeighbors(indext->left, nArea, indextVect);
 					found=true;
 				}
 			}
 			indext = indext->prev;
 		}
   }
-
+	
   return indextVect;
 }
 
@@ -740,9 +782,6 @@ int readReserves(vector<reserve>& reserves, string reserveFile){
     return nbreserves;
 }
 
-
-
-
 void writeOutputFile(vector<float> output, ofstream &file){
 	unsigned int a;
     for(a=0; a < output.size(); a++){
@@ -770,8 +809,9 @@ void bintree::readBases(ofstream &ofile, bintree* tree, string baseFile){
     ifstream bfile ;
     bfile.open(baseFile);
     bool seen =false;
-    unsigned int dim =2;
+    unsigned int dim =2, nArea =0;
     
+	nArea = bintree::searchLeaves(tree,0);
     if (bfile.is_open())
     {
       while(getline(bfile, bline)){
@@ -793,7 +833,13 @@ void bintree::readBases(ofstream &ofile, bintree* tree, string baseFile){
 		  output = findNearestReserve(min(cd), reserves);
 		  bintree::checkTreePrev(indext);
 		  writeOutputFile(output, ofile);
-		  vector<bintree*> indextVector= bintree::searchNeighbors(indext);
+		  vector<bintree*> indextVector= bintree::searchNeighbors(indext, nArea);
+		   for (vector<bintree*>::iterator k = indextVector.begin(); 
+                             k != indextVector.end(); 
+                             ++k) 
+                {
+					cout<< (*k)->root <<" "<<endl;
+				}
       }
 
       bfile.close();
