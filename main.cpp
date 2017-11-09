@@ -84,8 +84,8 @@ class bintree {
 
 	  static void niveles(bintree *);
 	  static bintree *create2DBST(float** array, int depth, int nbreserves, int left = 0, int right = -1, bintree* prevt=nullptr);
-	  static bintree *createhalf2DBST(float** array, int depth, int nbreserves, int left = 0, int right = -1);
-	  static bintree *createfraction2DBST(float** array, int depth, int nbreserves, int left=0, int right=-1);
+	  static bintree *createhalf2DBST(float** array, int depth, int nbreserves, int left = 0, int right = -1, bintree* prevt=nullptr);
+	  static bintree *createfraction2DBST(float** array, int depth, int nbreserves, int left=0, int right=-1, bintree* prevt=nullptr);
 	  static void add(float* coord, bintree *t, int depth);
 	  static void readBases(ofstream &ofile, bintree* tree, string baseFile);
 	  
@@ -94,10 +94,9 @@ class bintree {
 	  static void checkTree(bintree* tree);
 	  static void checkTreePrev(bintree* indext);
 	  static vector<reserve> searchVectorNode(bintree* indext);
-      static vector<bintree *> searchNeighbors(bintree* indext, int nArea);
+      static bintree * searchNeighbors(bintree* indext, int nArea);
       static bintree* searchFirstLeaf(bintree* indextpp, bool right);
       static int searchLeaves(bintree* indextpp, int count);
-      static void searchOtherNeighbors(bintree* indext, int nArea, vector<bintree*> &indexVector);
 
     
 };
@@ -199,7 +198,7 @@ void read(float **array, int nbreserves){
 }
 
 vector<float> findNearestReserve(int index, vector<reserve>& reserves){
-   // cout<<"index "<<index<<endl;
+   
     vector<float> output={0,0};
     
     vector<reserve>::iterator k = reserves.begin();
@@ -211,12 +210,12 @@ vector<float> findNearestReserve(int index, vector<reserve>& reserves){
 
  void bintree::checkTree(bintree* tree){
 	  if(tree!=nullptr){
-		  cout<<" noeud : "<<tree->root<<endl;
+		  cout<<" node : "<<tree->root<<endl;
 		 
 		  if( tree->left) bintree::checkTree(tree->left);
 		  if(tree->right) bintree::checkTree(tree->right);
 	  }else{
-		  cout<<"arbre vide"<<endl;
+		  cout<<"empty tree"<<endl;
 	  }
   }
   
@@ -253,13 +252,11 @@ void bintree::add(float* coord, bintree *t, int depth){
 	  map<bintree*, leaf*>::iterator found = mapLeaves.find(t);
 	  
 	  if(found==mapLeaves.end()){
-		  cout<<"Nouvelle feuille ajoutée : "<< t->root<< " "<<t<<" coord : "<<coord[0]<<" , "<<coord[1]<<endl;
 		  leaf* l = new leaf ;
 		  l->addToLeaf(coord);
 		  mapLeaves.insert ( pair<bintree*,leaf*>(t, l ));
 		   
 	  }else{
-		  cout<<"Coord ajoutées à feuille déjà existante : "<< t->root<< " "<<t<<" coord : "<<coord[0]<<" , "<<coord[1]<<endl;
 		  ((found->second))->addToLeaf(coord);
 	  }
   }
@@ -316,7 +313,6 @@ bintree::create2DBST(float **array, int depth, int nbreserves, int left, int rig
   if (left == right) { 
 	  return nullptr; 
   }
-  if(prevt != nullptr) cout  << " prevt " << prevt->root << " profondeur : "<< depth<< endl;
   if( left == right - 1 ) {
 	  return new bintree(array[left][n], prevt);
   }
@@ -333,25 +329,10 @@ bintree::create2DBST(float **array, int depth, int nbreserves, int left, int rig
 return t;
 }
 
-  
-//   if( left == right - 5 ) {
-
-//     return new bintree(array[(( (right - left) / 2) + left)][n]);
-//   }
-//   else if(right - left > 5) {
-//     cout << "tree"<< endl;
-//   int med = (left + right) / 2;
-//   t->root = array[med][n];
-//   tl = create2DBST(array, depth, med, left, med);
-//   tr = create2DBST(array, depth, right, med , right);
-//   t->left = tl;
-//   t->right = tr;
-
-// }
 
 //finds recursively the half values of the binary search tree to build
 bintree *
-bintree::createhalf2DBST(float** array, int depth, int nbreserves, int left, int right){ 
+bintree::createhalf2DBST(float** array, int depth, int nbreserves, int left, int right, bintree* prevt){ 
   int n = 0, i, lim;
   depth++;
   bintree *t = new bintree;
@@ -366,7 +347,7 @@ bintree::createhalf2DBST(float** array, int depth, int nbreserves, int left, int
 	  return nullptr; 
   }
   if (left == right - 1 ) {
-	  return new bintree(array[left][n]);
+	  return new bintree(array[left][n], prevt);
   }
   
   float halfpoint[2];
@@ -388,8 +369,9 @@ bintree::createhalf2DBST(float** array, int depth, int nbreserves, int left, int
     }
     
     t->root=halfpoint[n]; 
-    tl = createhalf2DBST(array, depth, lim, left, lim);
-    tr = createhalf2DBST(array, depth, right, lim +1, right);
+    t->prev = prevt;
+    tl = createhalf2DBST(array, depth, lim, left, lim, t);
+    tr = createhalf2DBST(array, depth, right, lim +1, right, t);
     t->left = tl;
     t->right = tr;
     return t;
@@ -397,7 +379,7 @@ bintree::createhalf2DBST(float** array, int depth, int nbreserves, int left, int
 
 //finds recursively the half value of a fraction of points of the binary search tree to build
 bintree *
-bintree::createfraction2DBST(float** array, int depth, int nbreserves, int left, int right){
+bintree::createfraction2DBST(float** array, int depth, int nbreserves, int left, int right, bintree* prevt){
   int n=0,i,lim;
   depth++;
   bintree *t = new bintree;
@@ -412,7 +394,7 @@ bintree::createfraction2DBST(float** array, int depth, int nbreserves, int left,
 	  return nullptr; 
   }
   if (left == right - 1 ) {
-	  return new bintree(array[left][n]);
+	  return new bintree(array[left][n], prevt);
   }
 	  
   float fractionpoint;
@@ -433,8 +415,9 @@ bintree::createfraction2DBST(float** array, int depth, int nbreserves, int left,
 	
 	}
 	t->root=fractionpoint; 
-	tl = createfraction2DBST(array, depth, lim, left, lim);
-    tr = createfraction2DBST(array, depth, right, lim +1, right);
+	t->prev = prevt;
+	tl = createfraction2DBST(array, depth, lim, left, lim, t);
+    tr = createfraction2DBST(array, depth, right, lim +1, right, t);
     t->left = tl;
     t->right = tr;
     return t;
@@ -487,62 +470,33 @@ bintree* bintree::searchNode(vector<float> bcoordarray, bintree* t, int depth){
 		
 		  return t;
 }
-void bintree::searchOtherNeighbors( bintree *indext, int nArea, vector<bintree*> &indexVector){
-	bool right = false;
-	if((indext->prev->left) && (indext->prev->left) != indext){
-		right=true;
-	}
-	if(!right && (indext->prev->prev->right)){
-		if(indext->prev->root < indext->prev->prev->right->root){
-			
-			if((indext->prev->prev->right)->left )cout<< "on va voir l'enfant gauche de "<<indext->prev->prev->right->root<< " qui est " << indext->prev->prev->right->left->root<<endl;
-			/*indexVector.push_back(searchFirstLeaf(indext->prev->prev->right, !right);*/
-		}else{
-			
-			if((indext->prev->prev->right)->left ) cout<< "on va voir l'enfant gauche de "<<indext->prev->prev->right->root<< " qui est " << indext->prev->prev->right->left->root;
-			if((indext->prev->prev->right)->right ) cout<<" et son enfant droit qui est "<<indext->prev->prev->right->right->root<<endl;
-			/*indexVector.push_back(searchFirstLeaf(indext->prev->prev->right, !right);*/
-			/*indexVector.push_back(searchFirstLeaf(indext->prev->prev->right, right);*/
-		}
-	}
-	else if(right && (indext->prev->prev->left)){
-		if(indext->prev->root < indext->prev->prev->left->root){
-			if(indext->prev->prev->left->left) cout<< "on va voir l'enfant gauche de "<<indext->prev->prev->left->root<< " qui est " << indext->prev->prev->left->left->root<<endl;
-			/*indexVector.push_back(searchFirstLeaf(indext->prev->prev->left, right);*/
-		}else{
-			if(indext->prev->prev->left->left) cout<< "on va voir l'enfant gauche de "<<indext->prev->prev->left->root<< " qui est " << indext->prev->prev->left->left->root;
-			if(indext->prev->prev->left->right) cout<<" et son enfant droit qui est "<<indext->prev->prev->right->left->root<<endl;
-			/*indexVector.push_back(searchFirstLeaf(indext->prev->prev->left, !right);*/
-			/*indexVector.push_back(searchFirstLeaf(indext->prev->prev->left, right);*/
-		}
-	}
-}
+
 bintree* bintree::searchFirstLeaf(bintree* indextpp, bool right){
-  cout <<"indextpp " <<  indextpp->root <<  right << endl;
+
   if(right) {
-	  cout<<"je vais explorer le coté droit"<<endl;
+	 
     if( (indextpp->right) && (indextpp->right->right == nullptr && indextpp->right->left == nullptr)) {
-		cout << indextpp->right->root << " est une feuille" << endl; 
+		
 		return indextpp->right;
 	}
     else if(indextpp->right) {
-		cout << indextpp->right->root << " est un noeud" << endl; 
+	
        searchFirstLeaf(indextpp->right, false);
     }else{
-		cout<< "Il n'y a pas de coté droit"<<endl;
+		
 		searchFirstLeaf(indextpp, false);
 	}
    } else {
-	  cout<<"je vais explorer le coté gauche"<<endl;
+	 
 		if((indextpp->left) && (indextpp->left->right == nullptr && indextpp->left->left == nullptr)) {
-			cout << indextpp->left->root << " est une feuille" << endl; 
+			
 			return indextpp->left;
 		}
 		else if(indextpp->left){
-			cout << indextpp->left->root << " est un noeud" << endl; 
+			
 		    searchFirstLeaf(indextpp->left, true);
 		}else{
-		cout<< "Il n'y a pas de coté gauche"<<endl;
+		
 			searchFirstLeaf(indextpp, true);
 		}
     }  
@@ -563,59 +517,43 @@ int bintree::searchLeaves(bintree* indextpp, int count){
 
 
 //search the neighbors areas
-vector<bintree*> bintree::searchNeighbors(bintree* indext, int nArea){
+bintree* bintree::searchNeighbors(bintree* indext, int nArea){
+	bintree* indextVect;
 	
-  vector<bintree*> indextVect;
-  //verifie qu'il y a un frere gauche et qu'il n'est pas indext 
   if( (indext->prev->left) && ((indext->prev)->left != indext)) 
   {
-	  //ce frere gauche est une feuille
 	  if(((indext->prev)->left)->left == nullptr && ((indext->prev)->left)->right == nullptr)
 	  {
-		cout << "existe feuille soeur gauche " << endl; 
-		indextVect.push_back((indext->prev)->left);
-		bintree::searchOtherNeighbors(indext, nArea, indextVect);
+			indextVect=indext->prev->left;
 		
-		//ce frere gauche a des enfants
 	  }else{
-		indextVect.push_back(bintree::searchFirstLeaf(indext->prev->left, true));
-		bintree::searchOtherNeighbors(indext, nArea, indextVect);
+		 indextVect=bintree::searchFirstLeaf(indext->prev->left, true);
 	  }
   }
-	//verifie qu'il y a un frere droit et qu'il n'est pas indext 
   else if( (indext->prev->right) && (indext->prev)->right != indext)
   {  
-	  //ce frere droit est une feuille
 	  if( (indext->prev->right)->left == nullptr && (indext->prev->right)->right == nullptr)
 		{ 
-			cout << "existe feuille soeur droite " << endl;
-			indextVect.push_back((indext->prev)->right);
-			bintree::searchOtherNeighbors(indext, nArea, indextVect);
+			indextVect=indext->prev->right;
 		}
-		//ce frere droit a des enfants
 		else{
-		indextVect.push_back(bintree::searchFirstLeaf(indext->prev->right, false));
-		bintree::searchOtherNeighbors(indext, nArea, indextVect);
+			indextVect=bintree::searchFirstLeaf(indext->prev->right, false);
 		}
   }
-  //n'a pas de frere donc on va explorer les enfants du grand-père du coté où nous n'étions pas
   else {
-	  /*cout << "n'a pas de frere" << endl;*/
 	  indext = indext->prev;
-	  cout<<"racine de mon pere : "<<indext->root<<endl;
 	  bool found=false;
 	  while(!found){
 		  if((indext->prev) && ((indext->prev->left != indext) || (indext->prev->right != indext))){
-			  cout<<"il y a un grand pere qui a des chemins différents du mien"<<endl;
+			  
 				if( (indext->prev->left) && (indext->prev->left != indext)){
-					cout<<"racine de mon grandpere : "<<indext->prev->root<<endl;
-					indextVect.push_back(searchFirstLeaf(indext->prev, false));
-					bintree::searchOtherNeighbors(indext->right, nArea, indextVect);
+					
+					indextVect=searchFirstLeaf(indext->prev, false);
+					
 					found=true;
 				}else if( (indext->prev->right) && (indext->prev->right != indext)){
-					cout<<"racine de mon grandpere : "<<indext->prev->root<<endl;
-					indextVect.push_back(searchFirstLeaf(indext->prev, true));
-					bintree::searchOtherNeighbors(indext->left, nArea, indextVect);
+					
+					indextVect= searchFirstLeaf(indext->prev, true);
 					found=true;
 				}
 			}
@@ -655,7 +593,6 @@ vector<float> evaluateDist(vector<float> bcoordarray, vector<reserve> reserves){
                 {
 					rcoordarray[0]=k->getx();
 					rcoordarray[1]=k->gety();
-					//cout<< rcoordarray[0]<< " "<<rcoordarray[1]<<endl;
 					
 				}
 	reserve r;
@@ -663,7 +600,6 @@ vector<float> evaluateDist(vector<float> bcoordarray, vector<reserve> reserves){
 	reserve r2;
 	r2.setx(bcoordarray[0]);r2.sety(bcoordarray[1]);
 	distances.push_back(r+r2);
-	//cout<<"distance : "<<dist(rcoordarray, bcoordarray)<<endl;
     return distances;
 }
 	
@@ -846,20 +782,21 @@ void bintree::readBases(ofstream &ofile, bintree* tree, string baseFile){
 		  }
 		  //recherche du noeud pointant sur la feuille la plus proche de la base c
 		  bintree* indext = bintree::searchNode(c, tree, 0);
+		  
+		  bintree* indextNeighbor= bintree::searchNeighbors(indext, nArea);
+		  
+
 		  //recuperation du vecteur de coordonnées de réserves stockées sur la feuille
+		  
 		  vector<reserve> reserves = bintree::searchVectorNode(indext);
+		  vector<reserve> reservesNeighbor = bintree::searchVectorNode(indextNeighbor);
+		  
+		  reserves.insert(reserves.end(), reservesNeighbor.begin(), reservesNeighbor.end());
+		  
+		 // bintree::checkTreePrev(indext);		  
 		  cd = evaluateDist(c, reserves);
 		  output = findNearestReserve(min(cd), reserves);
-		 // bintree::checkTreePrev(indext);
-		  
-		  vector<bintree*> indextVector= bintree::searchNeighbors(indext, nArea);
-		   for (vector<bintree*>::iterator k = indextVector.begin(); 
-                             k != indextVector.end(); 
-                             ++k) 
-                {
-					cout<< (*k)->root <<" "<<endl;
-				}
-				writeOutputFile(output, ofile);
+		  writeOutputFile(output, ofile);
       }
 
       bfile.close();
@@ -895,7 +832,12 @@ void readBasesNoOutput(bintree* tree, string baseFile){
 		//recherche du noeud pointant sur la feuille la plus proche de la base c
 		bintree* indext = bintree::searchNode(c, tree, 0);
 		//recuperation du vecteur de coordonnées de réserves stockées sur la feuille
-		vector<reserve> reserves = bintree::searchVectorNode(indext);
+		
+		  vector<reserve> reserves = bintree::searchVectorNode(indext);
+		  vector<reserve> reservesNeighbor = bintree::searchVectorNode(indextNeighbor);
+		  
+		  reserves.insert(reserves.end(), reservesNeighbor.begin(), reservesNeighbor.end());
+		  
 		cd = evaluateDist(c, reserves);
 		output = findNearestReserve(min(cd), reserves);
 		writeOutput(output);
@@ -953,7 +895,12 @@ void readBases(bintree* tree, string outputFile, vector<string>& cinbases, ofstr
 	  //recherche du noeud pointant sur la feuille la plus proche de la base c
 	  bintree* indext = bintree::searchNode(c, tree, 0);
 	  //recuperation du vecteur de coordonnées de réserves stockées sur la feuille
-	  vector<reserve> reserves = bintree::searchVectorNode(indext);
+	 
+		  vector<reserve> reserves = bintree::searchVectorNode(indext);
+		  vector<reserve> reservesNeighbor = bintree::searchVectorNode(indextNeighbor);
+		  
+		  reserves.insert(reserves.end(), reservesNeighbor.begin(), reservesNeighbor.end());
+		  
 	  cd = evaluateDist(c, reserves);
 	  output = findNearestReserve(min(cd), reserves);
       
@@ -1002,7 +949,12 @@ void readBasesNoInputOutput(bintree* tree, vector<string>& cinbases){
 		  //recherche du noeud pointant sur la feuille la plus proche de la base c
 		  bintree* indext = bintree::searchNode(c, tree, 0);
 		  //recuperation du vecteur de coordonnées de réserves stockées sur la feuille
+		  
 		  vector<reserve> reserves = bintree::searchVectorNode(indext);
+		  vector<reserve> reservesNeighbor = bintree::searchVectorNode(indextNeighbor);
+		  
+		  reserves.insert(reserves.end(), reservesNeighbor.begin(), reservesNeighbor.end());
+		  
 		  cd = evaluateDist(c, reserves);
 		  output = findNearestReserve(min(cd), reserves);
 		  writeOutput(output);
@@ -1029,7 +981,6 @@ int main (int argc, char* argv[]) {
   			if (i + 1 < argc) {
   				nbreserves = readReserves(reserves, argv[++i]);
 				reservesArray = setReservesArray(reserves);
-				//read(reservesArray, nbreserves);
   		  } else {
   			  cerr << "-p option requires one argument." << endl;
 				exit (EXIT_FAILURE);
@@ -1069,12 +1020,12 @@ int main (int argc, char* argv[]) {
 			bintree::niveles(tree); //Recorrido: por niveles
 			
 		}else if(splitting == "mitad"){
-			bintree *tree = bintree::createhalf2DBST(reservesArray, depth, nbreserves);
+			tree = bintree::createhalf2DBST(reservesArray, depth, nbreserves);
       addLeavesToTree(reservesArray, tree, nbreserves);
 			bintree::niveles(tree); //Recorrido: por niveles
 			
 		}else if(splitting == "promedio"){
-			bintree *tree = bintree::createfraction2DBST(reservesArray, depth, nbreserves);
+			tree = bintree::createfraction2DBST(reservesArray, depth, nbreserves);
       addLeavesToTree(reservesArray, tree, nbreserves);
 			bintree::niveles(tree); //Recorrido: por niveles
 			
