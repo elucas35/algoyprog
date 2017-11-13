@@ -307,7 +307,7 @@ float quickSelect2D(float** input, int p, int r, int k, int n)
 //calculate the distance between 2 pts : a query coordinates and a reserve
 float dist (vector<float>& d1, vector<float>& d2){
   unsigned int a=0;
-  float d,sum=0;
+  float d=0.0,sum=0.0;
   for(a=0; a < d1.size(); a++){
     d=d2[a] - d1[a];
     sum += d*d;
@@ -407,7 +407,7 @@ void read(float **array, int nbreserves){
 //finds the reserve of index given in a reserve vector, index is of smallest distance found
 vector<float> findNearestReserve(int index, vector<reserve>& reserves){
 
-  vector<float> output={0,0};
+  vector<float> output={0.0,0.0};
 
   vector<reserve>::iterator k = reserves.begin();
   advance (k,index); 
@@ -528,7 +528,7 @@ bintree *bintree::create2DBST(float **array, int depth, int nbreserves, int left
 
 //creates a 2D tree using half heuristic spliting
 bintree *bintree::createhalf2DBST(float** array, int depth, int nbreserves, int left, int right, bintree* prevt){ 
-  int n = 0, i=0, lim=0;
+  int n=0, i=0, lim=0;
   depth++;
   bintree *t = new bintree;
   bintree *tl;
@@ -904,7 +904,7 @@ vector<float> readCoord(string line, bool &seen){
   char *cstr = new char[line.length() + 1];
   unsigned int i=0, l=0;
   float coord=0.0;
-  string s, t;
+  string s="", t="";
   vector< string > arr;
   vector< float > coordarray;
   bool error = false;
@@ -955,7 +955,7 @@ vector<float> readCoord(string line, bool &seen, string &filename){
   char *cstr = new char[line.length() + 1];
   unsigned int i=0, l=0;
   float coord = 0.0;
-  string s, t;
+  string s="", t="";
   vector< string > arr;
   vector< float > coordarray;
   bool error = false;
@@ -1002,7 +1002,7 @@ vector<float> readCoord(string line, bool &seen, string &filename){
 
 //parses each line through readcoord and returns the number of reserves
 int readReserves(vector<reserve>& reserves, string reserveFile){
-  string line, d;
+  string line="", d="";
   int nbreserves = 0;
   unsigned int dimension = 0;
   bool seen = false;
@@ -1049,7 +1049,7 @@ file << endl;
 //case 1 : input file + output file 
 void bintree::readBases(ofstream &ofile, bintree* tree, string baseFile, int nbreserves){
 
-  string bline;
+  string bline="";
   vector<float> output, cd, c, distToAreas;
   vector<int> nearestNeighbors;
   ifstream bfile ;
@@ -1140,7 +1140,7 @@ void writeOutput(vector<float> output){
 //case 2 : input file provided + standard output 
 void readBasesNoOutput(bintree* tree, string baseFile, int nbreserves){
   cout << "The nearest reserves to the bases are : " << endl;
-  string bline;
+  string bline="";
   vector<float> output, cd, c, distToAreas;
   vector<int> nearestNeighbors;
   ifstream bfile ;
@@ -1219,7 +1219,7 @@ void bintree::openOutputFile(bintree* tree, string outputFile, string baseFile, 
 
 //case 3 et 4 : Bases are provided from standard input
 vector<string> readBasesFromInput(){
-  string line;
+  string line="";
   vector<string> cinbases;
   cout<<"Please enter bases coordinates, one per line, using 2-dimensions (as for reserves) : "<<endl << "Stop with s."<<endl;
   while(line != "s"){
@@ -1236,7 +1236,7 @@ vector<string> readBasesFromInput(){
 
 //case 3 : standard input + output file
 void readBases(bintree* tree, string outputFile, vector<string>& cinbases, ofstream& myfile, int nbreserves){
-  string bline;
+  string bline="";
   vector<float> output, cd, c, distToAreas;
   vector<int> nearestNeighbors;
   ifstream bfile;
@@ -1351,7 +1351,7 @@ else cout << "Error when opening bases files " << endl;;
 //case 4 : no input file + no output file
 void readBasesNoInputOutput(bintree* tree, vector<string>& cinbases, int nbreserves){
  cout << "The nearest reserves to the bases are : " << endl;
- string bline;
+ string bline="";
  vector<float> output, cd, c, distToAreas;
  vector<int> nearestNeighbors;
  bool seen =false;
@@ -1411,7 +1411,7 @@ int main (int argc, char* argv[]) {
    bool points=false, input=false, output=false, heuristic=false;
    vector<reserve> reserves;
    float **reservesArray=NULL;
-   string basef, outputf, splitting;
+   string basef="", outputf="", splitting="";
    vector <string> cinbases;
    vector <float> outputv;
    bintree *tree ;
