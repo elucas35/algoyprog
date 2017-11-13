@@ -1,0 +1,35 @@
+Ce que j'ai fait 
+fini la recherche dans les zones
+intégrer a tous les cas
+initialiser les variables de type int et float ( mais reste à regarder comment initaliser easily les vec et les strings)
+commenter ttes les fonctions en anglais (1 ligne avant chaque fonction pour expliquer ce qu'elle fait)
+
+
+A faire
+1) Warnings
+2) Faire des fichiers différents
+3) Expliquer la map dans le rapport ? je sais plus si tu l'avais fait ?
+4) est ce qu'on enleve levels et searchNeighbors et searchFirstLeaf?
+5) est ce qu'on supprime les méthodes de bintree que j'ia commenté au début du fichier après la déclaration de la classe bintree ? Je pense que oui mais regarde quand meme ahah
+6) Faire les tests
+
+Enora (les numéros correspondent à la catégorie à faire) tu peux faire les points ?
+(1) 
+(2)
+(6) mais je vais en faire aussi j'aimerai bien que tu teste pour les heuristiques de split autre que médinane stp
+les autres pts sont des questions 
+
+
+A Ajouter au rapport
+1) recherche dans les zones proches OK
+2) optimization de la mémoire : passage des var par ref pour éviter de creer des copies intules + unsigned au lieu de int
+3) quickSelect algo OK
+4) faire les use case
+5) amelioration : découpage fichiers et noter comment compiler de nouveau avec tous les fichiers 
+6) on a checké les mem leaks 
+
+Demain (pour moi)
+passer par ref dans toutes les fonctions pour optimiser mem
+Faire les tests et noter dans le rapport les tests dans la partie use case 
+faire le quick select 
+verifier qu'on a pas de memory leak et verifier si on a bien tous les delete des new
