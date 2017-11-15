@@ -84,7 +84,6 @@ public:
 
  }
 
-static void levels(bintree *);
 static bintree *create2DBST(float** array, int depth, int nbreserves, int left = 0, int right = -1, bintree* prevt=nullptr);
 static bintree *createhalf2DBST(float** array, int depth, int nbreserves, int left = 0, int right = -1, bintree* prevt=nullptr);
 static bintree *createfraction2DBST(float** array, int depth, int nbreserves, int left=0, int right=-1, bintree* prevt=nullptr);
@@ -95,60 +94,11 @@ static void openOutputFile(bintree* tree, string outputFile, string baseFile, in
 static vector<reserve> searchVectorNode(bintree* indext);
 static vector<reserve> readMap();
 static vector<float> readMapAll(bintree * indext, vector<float> &c, float dMin);
-static bintree * searchNeighbors(bintree* indext);
-static bintree * searchFirstLeaf(bintree* indextpp, bool right);
 static vector<vector<reserve>> searchNeighborAreas(vector<int> nearestNeighbors, bintree* indext);
-//static int searchLeaves(bintree* indextpp, int count);
-//static void readBintreeVector(vector<bintree*>);
 //static void checkTree(bintree* tree);
 //static void checkTreePrev(bintree* indext);
+//static void readLeaves();
 };
-
-// int bintree::searchLeaves(bintree* indextpp, int count){
-
-//   if( indextpp->right== nullptr && indextpp->left == nullptr) {
-//     count++;
-//   }
-//   else{
-//     if(indextpp->right) count=searchLeaves(indextpp->right, count);
-
-//     if(indextpp->left) count=searchLeaves(indextpp->left, count);
-//   }
-//   return count; 
-// }
-
-
-// void bintree::readBintreeVector(vector<bintree*> vec){
-
-//   for (vector<bintree*>::iterator k = vec.begin(); 
-//    k != vec.end(); 
-//    ++k) 
-//   {
-//     cout << "feuille : " <<(*k)->root << endl;
-//   }
-
-// }
-
-// void bintree::checkTreePrev(bintree* indext){
-//  if(indext->prev){
-//   cout<< "Le noeud : "<<indext->root<< " a un prev."<<endl;
-//   checkTreePrev(indext->prev);
-// }else{
-//   cout<<"Le noeud : "<<indext->root<<" n'a pas de prev"<<endl;
-// }
-// }
-
-// void bintree::checkTree(bintree* tree){
-//  if(tree!=nullptr){
-//   cout<<" node : "<<tree->root<<endl;
-
-//   if( tree->left) bintree::checkTree(tree->left);
-//   if(tree->right) bintree::checkTree(tree->right);
-// }else{
-//   cout<<"empty tree"<<endl;
-// }
-// }
-
 
 
 class leaf{
@@ -207,6 +157,18 @@ float leaf::getMaxy(){
 
 //map (leaf's id, leaf of the tree)
 map<bintree*,leaf*> mapLeaves ;
+/*void bintree::readLeaves(){
+	vector<reserve> r;
+	for(auto it = mapLeaves.cbegin(); it != mapLeaves.cend(); ++it)
+  {
+	  cout<<"feuille : "<<it->first->root;
+    r = (it->second)->getCoordLeaf();
+    for(vector<reserve>::iterator k = r.begin(); k!=r.cend(); ++k){
+		cout<<"val : x "<<k->getx()<<" y "<<k->gety()<<endl;
+	}
+  }
+  
+}*/
 
 //returns the minimum of an 2D array
 float min2D(vector<reserve> reserves, int dim){
@@ -341,7 +303,7 @@ return indexes;
 
 //adds a leaves
 void addLeavesToTree(float** reservesArray, bintree* t, int nbreserves){
-  unsigned int i=0, j=0;
+  int i=0;
   for(i=0; i<nbreserves; i++){
     bintree::add(reservesArray[i], t, 0);
   }
@@ -394,8 +356,8 @@ float** setReservesArray(vector<reserve>& reserves){
 
 //reads an 2D array
 void read(float **array, int nbreserves){
-
-  unsigned int i=0, j=0;
+  int i=0;
+  unsigned j=0;
   for(i=0; i<nbreserves; i++){
     for(j=0;j<(sizeof(*array)/sizeof(**array)) ;j++){
       cout << array[i][j] << " ";
@@ -545,25 +507,24 @@ bintree *bintree::createhalf2DBST(float** array, int depth, int nbreserves, int 
    return new bintree(array[left][n], prevt);
  }
 
- float halfpoint[2];
- halfpoint[0] = (array[left][0]+array[right-1][0]) / 2 ;
- halfpoint[1] = (array[left][1]+array[right-1][1]) / 2 ;
+ float halfpoint;
+ halfpoint = (array[left][n]+array[right-1][n]) / 2 ;
 
  if(left != right - 1 && right != left){ 		
   for(i=left; i<right; i++){
    if(n==0){
-    if(array[i][n]<=halfpoint[n]){
+    if(array[i][n]<=halfpoint){
      lim = i;
    }
  }else if(n==1) {
-  if(array[i][n]>halfpoint[n]){
+  if(array[i][n]>halfpoint){
    lim = i;
  }
 }
 }
 }
 
-t->root=halfpoint[n]; 
+t->root=halfpoint; 
 t->prev = prevt;
 tl = createhalf2DBST(array, depth, lim, left, lim, t);
 tr = createhalf2DBST(array, depth, right, lim +1, right, t);
@@ -617,35 +578,10 @@ t->right = tr;
 return t;
 }
 
-//reads the levels of a binary tree
-void bintree::levels(bintree *tree)
-{
- cout << "levels: ";
- char const *comma = "";
- queue<bintree const *> q;
-
- for (q.enqueue(tree); !q.empty(); ) {
-  bintree const *sub = q.dequeue();
-
-  if (sub->left)
-    q.enqueue(sub->left);
-
-  if (sub->right)
-    q.enqueue(sub->right);
-
-  std::cout << comma;
-  std::cout << sub->root;
-  comma = ", ";
-}
-cout << endl;
-}
-
 //searches the closest node to the given coord in the tree
 bintree* bintree::searchNode(vector<float> bcoordarray, bintree* t, int depth){
 
  int dim = 0;
- bool seen = false;
- bintree* e;
  if((depth % 2)!=0){dim=1;}
 
  if(bcoordarray[dim]<=(t->root)){
@@ -672,91 +608,12 @@ bintree* bintree::searchNode(vector<float> bcoordarray, bintree* t, int depth){
 return t;
 }
 
-//searches the first leaf
-bintree* bintree::searchFirstLeaf(bintree* indextpp, bool right){
-
-  if(right) {
-
-    if( (indextpp->right) && (indextpp->right->right == nullptr && indextpp->right->left == nullptr)) {
-
-      return indextpp->right;
-    }
-    else if(indextpp->right) {
-
-     return searchFirstLeaf(indextpp->right, false);
-   }else{
-
-    return searchFirstLeaf(indextpp, false);
-  }
-} else {
-
-  if((indextpp->left) && (indextpp->left->right == nullptr && indextpp->left->left == nullptr)) {
-
-   return indextpp->left;
- }
- else if(indextpp->left){
-
-  return searchFirstLeaf(indextpp->left, true);
-}else{
-
- return searchFirstLeaf(indextpp, true);
-}
-}  
-}
-
-//searches the neighbors areas
-bintree* bintree::searchNeighbors(bintree* indext){
- bintree* indextVect;
-
- if( (indext->prev->left) && ((indext->prev)->left != indext)) 
- {
-   if(((indext->prev)->left)->left == nullptr && ((indext->prev)->left)->right == nullptr)
-   {
-     indextVect=indext->prev->left;
-
-   }else{
-     indextVect=bintree::searchFirstLeaf(indext->prev->left, true);
-   }
- }
- else if( (indext->prev->right) && (indext->prev)->right != indext)
- {  
-   if( (indext->prev->right)->left == nullptr && (indext->prev->right)->right == nullptr)
-   { 
-     indextVect=indext->prev->right;
-   }
-   else{
-     indextVect=bintree::searchFirstLeaf(indext->prev->right, false);
-   }
- }
- else {
-   indext = indext->prev;
-   bool found=false;
-   while(!found){
-    if((indext->prev) && ((indext->prev->left != indext) || (indext->prev->right != indext))){
-
-      if( (indext->prev->left) && (indext->prev->left != indext)){
-
-       indextVect=searchFirstLeaf(indext->prev, false);
-
-       found=true;
-     }else if( (indext->prev->right) && (indext->prev->right != indext)){
-
-       indextVect= searchFirstLeaf(indext->prev, true);
-       found=true;
-     }
-   }
-   indext = indext->prev;
- }
-}
-
-return indextVect;
-}
 
 //return the list of reserves nearest to the query (which distance is less than the one we had so far)
 vector<vector<reserve>> bintree::searchNeighborAreas(vector<int> nearestNeighbors, bintree* indext){
   vector<reserve> rcoordarray;
   vector<vector<reserve>> r;
-  unsigned int a =0, cmpt = 0;
+  unsigned int a =0; int cmpt = 0;
   for(auto it = mapLeaves.cbegin(); it != mapLeaves.cend(); ++it)
   {
     if((it->first)!=indext){
@@ -1016,11 +873,13 @@ int readReserves(vector<reserve>& reserves, string reserveFile){
     if(d == "" || d== " "){cout << "ERROR : Empty file." << endl; exit (EXIT_FAILURE); }
     else {
       dimension = stoi(d);
+      cout<<"dimension "<<dimension<<endl;
       while(getline(file, line)){
 
         nbreserves++;
         c = readCoord(line, seen, reserveFile);
         if(c.size() != dimension) {
+			cout<<"c "<<c.size()<<endl;
           cout << "ERROR : One reserve has coordinates of wrong dimension, dimension must be "<< dimension <<  " . Please correct it and re-run the program." << endl; exit (EXIT_FAILURE);
         }
         if(!c.size()) {
@@ -1056,7 +915,6 @@ void bintree::readBases(ofstream &ofile, bintree* tree, string baseFile, int nbr
   bfile.open(baseFile);
   bool seen =false;
   unsigned int dim =2;
-  int nblignes=0;
   float dMin  = 0.0;
 
   if (bfile.is_open())
@@ -1090,8 +948,8 @@ void bintree::readBases(ofstream &ofile, bintree* tree, string baseFile, int nbr
 
       cout << endl << endl << endl;
       bintree* indext = bintree::searchNode(c, tree, 0);
+      
       cout << "feuille initiale " << indext-> root << endl;
-      bintree* indextNeighbor= bintree::searchNeighbors(indext);
       vector<reserve> reserves = bintree::searchVectorNode(indext);
       cd = evaluateDist(c, reserves);
       cout << "initial reserves vector size : " << reserves.size() << endl;
@@ -1147,7 +1005,6 @@ void readBasesNoOutput(bintree* tree, string baseFile, int nbreserves){
   bfile.open(baseFile);
   bool seen =false;
   unsigned int dim = 2;
-  int nblignes=0;
   float dMin  = 0.0;
 
   if (bfile.is_open())
@@ -1170,8 +1027,6 @@ void readBasesNoOutput(bintree* tree, string baseFile, int nbreserves){
       else{
 
       bintree* indext = bintree::searchNode(c, tree, 0);
-      //cout << "feuille initiale " << indext-> root << endl;
-      bintree* indextNeighbor= bintree::searchNeighbors(indext);
       vector<reserve> reserves = bintree::searchVectorNode(indext);
       cd = evaluateDist(c, reserves);
       cout << "initial reserves vector size : " << reserves.size() << endl;
@@ -1243,7 +1098,6 @@ void readBases(bintree* tree, string outputFile, vector<string>& cinbases, ofstr
   bfile.open(outputFile);
   bool seen =false;
   unsigned int a=0, l=0, dim = 2;
-  int nblignes=0;
   float dMin  = 0.0;
 
   if(cinbases.size()){
@@ -1267,7 +1121,6 @@ void readBases(bintree* tree, string outputFile, vector<string>& cinbases, ofstr
       }
       else{
       bintree* indext = bintree::searchNode(c, tree, 0);
-      bintree* indextNeighbor= bintree::searchNeighbors(indext);
       vector<reserve> reserves = bintree::searchVectorNode(indext);
       cd = evaluateDist(c, reserves);
       cout << "initial reserves vector size : " << reserves.size() << endl;
@@ -1317,7 +1170,6 @@ void readBases(bintree* tree, string outputFile, vector<string>& cinbases, ofstr
 
     else{
       bintree* indext = bintree::searchNode(c, tree, 0);
-      bintree* indextNeighbor= bintree::searchNeighbors(indext);
       vector<reserve> reserves = bintree::searchVectorNode(indext);
       cd = evaluateDist(c, reserves);
       cout << "initial reserves vector size : " << reserves.size() << endl;
@@ -1356,7 +1208,6 @@ void readBasesNoInputOutput(bintree* tree, vector<string>& cinbases, int nbreser
  vector<int> nearestNeighbors;
  bool seen =false;
  unsigned int a=0, dim=2;
- int nblignes=0;
  float dMin  = 0.0;
 
  if(cinbases.size()){
@@ -1377,7 +1228,6 @@ void readBasesNoInputOutput(bintree* tree, vector<string>& cinbases, int nbreser
     else{
 
       bintree* indext = bintree::searchNode(c, tree, 0);
-      bintree* indextNeighbor= bintree::searchNeighbors(indext);
       vector<reserve> reserves = bintree::searchVectorNode(indext);
       cd = evaluateDist(c, reserves);
       cout << "initial reserves vector size : " << reserves.size() << endl;
@@ -1405,7 +1255,26 @@ void readBasesNoInputOutput(bintree* tree, vector<string>& cinbases, int nbreser
   }
 }
 }
+/*
+void bintree::checkTree(bintree* tree){
+  if(tree!=nullptr){
+   cout<<" node : "<<tree->root<<endl;
+   if( tree->left) bintree::checkTree(tree->left);
+   if(tree->right) bintree::checkTree(tree->right);
+ }else{
+   cout<<"empty tree"<<endl;
+ }
+ }
 
+ void bintree::checkTreePrev(bintree* indext){
+  if(indext->prev){
+   cout<< "Le noeud : "<<indext->root<< " a un prev " << indext->prev->root<<endl;
+   checkTreePrev(indext->prev);
+ }else{
+   cout<<"Le noeud : "<<indext->root<<" n'a pas de prev"<<endl;
+ }
+ }
+*/
 
 int main (int argc, char* argv[]) {
    bool points=false, input=false, output=false, heuristic=false;
@@ -1418,7 +1287,7 @@ int main (int argc, char* argv[]) {
    int depth = -1, nbreserves = 0;
    vector<bintree*> areas;
 
-   for (unsigned int i = 1; i < argc; ++i) {
+   for (int i = 1; i < argc; ++i) {
     string arg = argv[i];
     if((arg == "-p")||(arg=="--points")) {
      points=true;
@@ -1458,21 +1327,26 @@ int main (int argc, char* argv[]) {
   }
   }
 
+  if(!points) {cerr << "ERROR : -p or --points is a compulsory option." << endl; exit (EXIT_FAILURE);}
   if(heuristic){
     if(splitting == "mediana"){
      tree = bintree::create2DBST(reservesArray, depth, nbreserves);
+   //  bintree::checkTree(tree);
      addLeavesToTree(reservesArray, tree, nbreserves);
-        			//bintree::levels(tree); 
+     attributeLimitLeaves();
 
    }else if(splitting == "mitad"){
      tree = bintree::createhalf2DBST(reservesArray, depth, nbreserves);
+    // bintree::checkTree(tree);
      addLeavesToTree(reservesArray, tree, nbreserves);
-        			//bintree::levels(tree); 
-
+     attributeLimitLeaves();
+	//bintree::readLeaves();
    }else if(splitting == "promedio"){
      tree = bintree::createfraction2DBST(reservesArray, depth, nbreserves);
+    // bintree::checkTree(tree);
      addLeavesToTree(reservesArray, tree, nbreserves);
-        			//bintree::levels(tree); 
+     attributeLimitLeaves();
+    // bintree::readLeaves();
    }else{
      cerr << "-s option accepts only mediana, mitad or promedio arguments." << endl;
      exit (EXIT_FAILURE);
@@ -1482,8 +1356,6 @@ int main (int argc, char* argv[]) {
     tree = bintree::create2DBST(reservesArray, depth, nbreserves);
     addLeavesToTree(reservesArray, tree, nbreserves);
     attributeLimitLeaves();
-        		//bintree::levels(tree); 
-
   }
   if((input) && (output))
   {
@@ -1507,7 +1379,6 @@ int main (int argc, char* argv[]) {
    cinbases = readBasesFromInput();
    readBasesNoInputOutput(tree, cinbases, nbreserves);
   }
-  if(!points) {cerr << "ERROR : -p or --points is a compulsory option." << endl; exit (EXIT_FAILURE);}
   if (tree != nullptr) {delete tree;} 
   for (unsigned int i = 0;i<reserves.size();i++) { delete[] reservesArray[i]; }
     delete[] reservesArray;
