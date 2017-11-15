@@ -1,0 +1,45 @@
+
+//returns the minimum of an 2D array
+float min2D(vector<reserve> reserves, int dim){
+  float indice = 0.0;
+  float coord = 0.0;
+  vector<reserve>::iterator k = reserves.begin();
+
+  if (dim == 0 ) indice = k->getx();
+  else indice = k->gety();
+
+  for (vector<reserve>::iterator k = reserves.begin(); 
+   k != reserves.end(); 
+   ++k) 
+  {
+    if (dim == 0 ) coord = k->getx();
+    else coord = k->gety();
+    if (coord <  indice) {
+      indice = coord;
+    }
+  }
+  return indice;
+}
+
+
+//returns the maximum of an 2D array
+float max2D(vector<reserve> reserves, int dim){
+  float indice = 0.0;
+  float coord = 0.0;
+  vector<reserve>::iterator k = reserves.begin();
+
+  if (dim == 0 ) indice = k->getx();
+  else indice = k->gety();
+
+  for (vector<reserve>::iterator k = reserves.begin(); 
+   k != reserves.end(); 
+   ++k) 
+  {
+    if (dim == 0 ) coord = k->getx();
+    else coord = k->gety();
+    if (coord >  indice) {
+      indice = coord;
+    }
+  }
+  return indice;
+}
