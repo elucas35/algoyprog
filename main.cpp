@@ -57,34 +57,6 @@ float quickSelect2D(float** input, int p, int r, int k, int n)
   else if ( k < length ) return quickSelect2D(input, p, j - 1, k, n);
   else  return quickSelect2D(input, j + 1, r, k - length, n);
 }
-
-
-
-
-
-//adds a leaves
-void addLeavesToTree(float** reservesArray, bintree* t, int nbreserves){
-  int i=0;
-  for(i=0; i<nbreserves; i++){
-    bintree::add(reservesArray[i], t, 0);
-  }
-}
-
-//sets the limits of an area
-void attributeLimitLeaves(){
-  
-  vector<reserve> reserves;
-
-  for(auto it = mapLeaves.cbegin(); it != mapLeaves.cend(); ++it)
-  {
-    reserves = (it->second)->getCoordLeaf();
-    (it->second)->setMinx(min2D(reserves, 0));
-    (it->second)->setMiny(min2D(reserves, 1));
-    (it->second)->setMaxx(max2D(reserves, 0));
-    (it->second)->setMaxy(max2D(reserves, 1));
-  }
-}
-
 //sets the coordinates of a reserve and adds it to the vector of reserves
 void setReserveWithCoord(vector<float> coordarray, vector<reserve>& reserves){
 
@@ -251,7 +223,7 @@ int main (int argc, char* argv[]) {
   }
   if((input) && (output))
   {
-   bintree::openOutputFile(tree, outputf, basef, nbreserves);
+   openOutputFile(tree, outputf, basef, nbreserves);
 
   }
   else if((input) && (!output))

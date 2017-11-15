@@ -45,5 +45,6 @@ static vector<vector<reserve>> searchNeighborAreas(vector<int> nearestNeighbors,
 //static void readLeaves();
 };
 void quickSort2D(float **arr, int left, int right, int n);
-
+void attributeLimitLeaves();
+void addLeavesToTree(float** reservesArray, bintree* t, int nbreserves);
 #endif

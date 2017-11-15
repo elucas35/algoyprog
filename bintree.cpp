@@ -4,6 +4,7 @@
 //map (leaf's id, leaf of the tree)
 map<bintree*,leaf*> mapLeaves ;
 
+
 //adds coordinates to the correspondant leaf of the map. The id of the leaf is the adress of the correspondent root in the tree
 void bintree::add(float* coord, bintree *t, int depth){
 
@@ -400,3 +401,25 @@ void bintree::checkTree(bintree* tree){
  }
  }
 */
+
+//sets the limits of an area
+void attributeLimitLeaves(){
+  
+  vector<reserve> reserves;
+
+  for(auto it = mapLeaves.cbegin(); it != mapLeaves.cend(); ++it)
+  {
+    reserves = (it->second)->getCoordLeaf();
+    (it->second)->setMinx(min2D(reserves, 0));
+    (it->second)->setMiny(min2D(reserves, 1));
+    (it->second)->setMaxx(max2D(reserves, 0));
+    (it->second)->setMaxy(max2D(reserves, 1));
+  }
+}
+//adds a leaves
+void addLeavesToTree(float** reservesArray, bintree* t, int nbreserves){
+  int i=0;
+  for(i=0; i<nbreserves; i++){
+    bintree::add(reservesArray[i], t, 0);
+  }
+}
